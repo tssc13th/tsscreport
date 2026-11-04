@@ -5,8 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>📝 實名意見投遞 - TSSC13TH 胡台校意見箱</title>
     <link rel="stylesheet" href="style.css">
-   
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    
     <style>
         * {
             box-sizing: border-box;
@@ -19,14 +18,18 @@
             background-color: #f4f6f9;
             color: #333;
             line-height: 1.6;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Microsoft JhengHei", sans-serif;
         }
 
         .navbar {
-            background-color: #ffffff;
-            border-bottom: 1px solid #e5e7eb;
-            padding: 0.8rem 0;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-        }
+    background-color: #ffffff;
+    border-bottom: 1px solid #e5e7eb;
+    padding: 0.8rem 0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); 
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
 
         .nav-container {
             max-width: 1100px;
@@ -87,6 +90,11 @@
             background-color: #eff6ff;
             color: #2563eb;
             border-color: #bfdbfe;
+        }
+
+        /* 預設隱藏手機專用的按鈕與遮罩 */
+        .hamburger-btn, .close-drawer-btn, .drawer-overlay {
+            display: none;
         }
 
         .container {
@@ -173,10 +181,35 @@
             text-align: center;
         }
 
-        .g_id_signin {
-            display: flex;
+        /* 🔘 自製乾淨 Google 按鈕樣式 */
+        .custom-google-btn {
+            display: inline-flex;
+            align-items: center;
             justify-content: center;
+            gap: 10px;
             width: 100%;
+            max-width: 280px;
+            padding: 10px 16px;
+            background-color: #ffffff;
+            color: #374151;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s, box-shadow 0.2s;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+            margin-top: 6px;
+        }
+
+        .custom-google-btn:hover {
+            background-color: #f9fafb;
+            border-color: #9ca3af;
+        }
+
+        .custom-google-btn img {
+            width: 20px;
+            height: 20px;
         }
 
         .user-info-box {
@@ -200,6 +233,7 @@
         .user-details .user-email {
             font-weight: bold;
             color: #2563eb;
+            word-break: break-all;
         }
 
         .logout-google-btn {
@@ -241,73 +275,172 @@
             cursor: not-allowed;
         }
 
-        @media screen and (max-width: 768px) {
-            .navbar .nav-container {
-                flex-direction: column;
-                align-items: center;
-                gap: 12px;
-                padding: 14px 16px;
-            }
+        /* 📱 手機版 (768px 以下) 左側抽屜選單樣式 */
+       /* ================= 📱 手機專用 RWD 響應式與側邊抽屜選單優化 ================= */
+@media screen and (max-width: 768px) {
+    .navbar .nav-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 16px;
+        position: relative;
+    }
 
-            .navbar .nav-brand {
-                display: flex;
-                flex-direction: row;
-                align-items: center;
-                justify-content: center;
-                gap: 8px;
-                font-size: 1.1rem;
-                width: 100%;
-            }
+    /* 顯示漢堡按鈕 */
+    .hamburger-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: transparent;
+        border: none;
+        font-size: 1.5rem;
+        color: #1e293b;
+        cursor: pointer;
+        padding: 4px;
+    }
 
-            .navbar .nav-menu, 
-            .navbar .nav-links {
-                width: 100%;
-                display: flex;
-                flex-wrap: wrap;
-                justify-content: center;
-                gap: 8px;
-            }
+    .navbar .nav-brand {
+        font-size: 0.95rem;
+        gap: 6px;
+        flex: 1;
+        margin-left: 10px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
 
-            .navbar .nav-pill-btn, 
-            .navbar .nav-item {
-                padding: 0.45rem 0.85rem;
-                font-size: 0.85rem;
-            }
+    .navbar .site-logo {
+        width: 32px;
+        height: auto;
+    }
 
-            .container {
-                padding: 0 12px;
-                margin: 10px auto 20px;
-            }
+    /* 💡 左側隱藏抽屜選單本體（修復文字看不見與排版問題） */
+    .nav-menu, .nav-links {
+        position: fixed;
+        top: 0;
+        left: -280px;
+        width: 260px;
+        height: 100vh;
+        background-color: #ffffff !important;
+        box-shadow: 4px 0 15px rgba(0, 0, 0, 0.15);
+        z-index: 1000;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: flex-start !important;
+        align-items: stretch !important;
+        padding: 70px 20px 20px 20px !important;
+        gap: 12px !important;
+        transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
 
-            .card {
-                padding: 20px 16px;
-            }
+    /* 展開狀態 */
+    .nav-menu.open, .nav-links.open {
+        left: 0 !important;
+    }
 
-            .form-group input,
-            .form-group select,
-            .form-group textarea {
-                font-size: 16px !important;
-                padding: 10px 12px;
-            }
-        }
+    /* 💡 強制讓抽屜內的按鈕文字完整顯示且靠左對齊 */
+    .nav-menu .nav-pill-btn, .nav-links .nav-item {
+        width: 100% !important;
+        display: flex !important;
+        text-align: left !important;
+        padding: 12px 16px !important;
+        font-size: 1rem !important;
+        justify-content: flex-start !important;
+        color: #475569 !important;
+        background-color: #f8fafc !important;
+        border: 1px solid #e2e8f0 !important;
+        white-space: nowrap;
+    }
+
+    .nav-menu .nav-pill-btn.active, .nav-links .nav-item.active {
+        background-color: #eff6ff !important;
+        color: #2563eb !important;
+        border-color: #bfdbfe !important;
+    }
+
+    /* 關閉按鈕 (✕) */
+    .close-drawer-btn {
+        display: block !important;
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        background: transparent;
+        border: none;
+        font-size: 1.5rem;
+        color: #64748b;
+        cursor: pointer;
+        padding: 4px;
+        z-index: 1001;
+    }
+
+    /* 背景半透明遮罩 */
+    .drawer-overlay {
+        display: block;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: rgba(0, 0, 0, 0.4);
+        z-index: 999;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+    }
+
+    .drawer-overlay.active {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .container, .admin-header-bar, #admin-dashboard {
+        padding: 0 12px;
+        margin: 10px auto 20px;
+    }
+
+    .feedback-form, .form-card, .card, .login-card, .info-section {
+        padding: 20px 16px;
+        border-radius: 12px;
+        margin: 10px auto;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        font-size: 16px !important; 
+        padding: 10px 12px;
+    }
+}
+        
     </style>
 </head>
 <body>
    
     <nav class="navbar">
         <div class="nav-container">
+            <!-- 手機版漢堡按鈕 -->
+            <button class="hamburger-btn" onclick="toggleDrawer()" aria-label="開啟選單">
+                ☰
+            </button>
+
             <a href="index.html" class="nav-brand">
                 <img src="tpshcmcsc.png" alt="會徽" class="site-logo">
                 <span class="brand-text">TSSC13TH 胡台校意見箱</span>
             </a>
-            <div class="nav-menu">
-                <a href="index.html" class="nav-pill-btn"> 首頁與須知</a>
-                <a href="replies.html" class="nav-pill-btn"> 匿名回覆專區</a>
-                <a href="myreplies.html" class="nav-pill-btn active"> 我的實名回覆</a>
-                <a href="admin.html" class="nav-pill-btn"> 管理員後台</a>
+
+            <!-- 導覽選單（手機版切換為隱藏抽屜） -->
+            <div class="nav-menu" id="navDrawer">
+                <button class="close-drawer-btn" onclick="toggleDrawer()" aria-label="關閉選單">✕</button>
+                <a href="index.html" class="nav-pill-btn">首頁與須知</a>
+                <a href="replies.html" class="nav-pill-btn">匿名回覆專區</a>
+                <a href="myreplies.html" class="nav-pill-btn">我的實名回覆</a>
+                <a href="admin.html" class="nav-pill-btn">管理員後台</a>
             </div>
         </div>
     </nav>
+
+    <!-- 手機版背景半透明遮罩 -->
+    <div class="drawer-overlay" id="drawerOverlay" onclick="toggleDrawer()"></div>
 
     <main class="container">
         <div class="card">
@@ -315,24 +448,16 @@
             <p class="description">請先透過學校官方 Google 帳號（@tshcmc.edu.vn）完成身分驗證登入後，即可填寫並送出實名意見。</p>
             
             <div class="auth-container">
+                <!-- 🔐 登入提示與自製 Google 按鈕 -->
                 <div id="loginPromptArea">
                     <label style="margin-bottom: 8px; text-align: center; font-weight: 600; color: #374151;">請使用學校信箱進行身分驗證</label>
-                   
-                    <div id="g_id_onload"
-                         data-client_id="395361201007-8a19lv4248ao671d96nfsmg23d5igf6m.apps.googleusercontent.com"
-                         data-callback="handleCredentialResponse"
-                         data-auto_prompt="false">
-                    </div>
-                    <div class="g_id_signin"
-                         data-type="standard"
-                         data-shape="rectangular"
-                         data-theme="outline"
-                         data-text="signin_with"
-                         data-size="large"
-                         data-logo_alignment="left">
-                    </div>
+                    <button type="button" class="custom-google-btn" onclick="redirectToGoogleLogin()">
+                        <img src="https://lh3.googleusercontent.com/COxitR2y5A_343_222602131" alt="Google logo" onerror="this.src='https://www.google.com/favicon.ico'">
+                        使用學校 Google 帳號登入
+                    </button>
                 </div>
 
+                <!-- 👤 登入成功後的資訊區塊 -->
                 <div id="userInfoArea" style="display: none; width: 100%;">
                     <div class="user-info-box">
                         <div class="user-details">
@@ -381,12 +506,25 @@
     </main>
 
     <footer style="text-align: center; padding: 20px; color: #94a3b8; font-size: 0.88rem;">
-        <p>胡志明市台灣學校學生會13th TPSHCMCSC13th © 2026 yucheng</p>
+        <p>胡志明市台灣學校學生會 TSSC13TH © 2026 yucheng</p>
     </footer>
 
     <script>
+        // 📱 左側抽屜選單開閉控制
+        function toggleDrawer() {
+            const drawer = document.getElementById('navDrawer');
+            const overlay = document.getElementById('drawerOverlay');
+            
+            if (drawer && overlay) {
+                drawer.classList.toggle('open');
+                overlay.classList.toggle('active');
+            }
+        }
+
         const GAS_URL = 'https://script.google.com/macros/s/AKfycbyX_GsvbBdSfWdLYHys0beIzngkABgNmQq49YXd9ukuXAVGZzfS75yMQ33AkP0yoPrL/exec';
         const TARGET_SHEET_ID = '18fxfF-BnNlDnhCH0NORbNeWXKSo1KHmljfPCkpvJTKo';
+        const CLIENT_ID = '434067788519-6s6r01fhhtn2d5200hmu2aqsh9v6dtoh.apps.googleusercontent.com';
+        
         let statusInterval = null;
         let consecutiveFailures = 0;
 
@@ -403,29 +541,51 @@
             }
         }
 
-        function handleCredentialResponse(response) {
-            const responsePayload = parseJwt(response.credential);
-            if (!responsePayload) {
-                alert('解析 Google 登入資訊失敗，請重新嘗試！');
-                return;
-            }
+        function redirectToGoogleLogin() {
+            const redirectUri = 'https://yuchengserver.github.io/tpshcmcsc2/send2.html';
+            
+            const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
+                `client_id=${encodeURIComponent(CLIENT_ID)}` +
+                `&redirect_uri=${encodeURIComponent(redirectUri)}` +
+                `&response_type=id_token` +
+                `&scope=${encodeURIComponent('openid email profile')}` +
+                `&nonce=${Date.now()}` +
+                `&prompt=select_account`; 
 
-            const email = responsePayload.email.toLowerCase();
-            const schoolEmailRegex = /^[a-zA-Z0-9._%+-]+@tshcmc\.edu\.vn$/i;
-            if (!schoolEmailRegex.test(email)) {
-                alert('驗證失敗：請務必使用您的學校官方信箱（@tshcmc.edu.vn）登入，非學校信箱無法進行實名投遞！');
-                localStorage.removeItem('tssc_google_auth');
-                location.reload();
-                return;
-            }
+            window.location.href = googleAuthUrl;
+        }
 
-            const loginData = {
-                email: email,
-                token: response.credential,
-                timestamp: Date.now()
-            };
-            localStorage.setItem('tssc_google_auth', JSON.stringify(loginData));
-            updateAuthUI(email);
+        // 🔍 檢查網址帶回來的 Token
+        function checkUrlForToken() {
+            const hash = window.location.hash.substring(1);
+            if (!hash) return false;
+
+            const params = new URLSearchParams(hash);
+            const idToken = params.get('id_token');
+
+            if (idToken) {
+                const responsePayload = parseJwt(idToken);
+                if (responsePayload && responsePayload.email) {
+                    const email = responsePayload.email.toLowerCase();
+                    const schoolEmailRegex = /^[a-zA-Z0-9._%+-]+@tshcmc\.edu\.vn$/i;
+                    
+                    if (!schoolEmailRegex.test(email)) {
+                        alert('驗證失敗：請務必使用您的學校官方信箱（@tshcmc.edu.vn）登入，非學校信箱無法進行實名投遞！');
+                        window.history.replaceState(null, null, window.location.pathname);
+                        return false;
+                    }
+
+                    const loginData = {
+                        email: email,
+                        token: idToken,
+                        timestamp: Date.now()
+                    };
+                    localStorage.setItem('tssc_google_auth', JSON.stringify(loginData));
+                    window.history.replaceState(null, null, window.location.pathname); 
+                    return true;
+                }
+            }
+            return false;
         }
 
         function updateAuthUI(email) {
@@ -434,12 +594,14 @@
             const loggedEmailSpan = document.getElementById('loggedEmail');
             const submitBtn = document.getElementById('submitBtn');
 
-            loginPrompt.style.display = 'none';
-            userInfo.style.display = 'block';
-            loggedEmailSpan.innerText = email;
+            if (loginPrompt) loginPrompt.style.display = 'none';
+            if (userInfo) userInfo.style.display = 'block';
+            if (loggedEmailSpan) loggedEmailSpan.innerText = email;
             
-            submitBtn.disabled = false;
-            submitBtn.innerText = '確認送出';
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerText = '確認送出';
+            }
         }
 
         function logoutGoogleUser() {
@@ -448,6 +610,11 @@
         }
 
         function checkSessionValidity() {
+            if (checkUrlForToken()) {
+                location.reload();
+                return;
+            }
+
             const storedAuth = localStorage.getItem('tssc_google_auth');
             if (!storedAuth) return;
 
@@ -457,7 +624,7 @@
                 const thirtyMinutes = 30 * 60 * 1000;
 
                 if (now - authData.timestamp > thirtyMinutes) {
-                    localStorage.removeItem('tssc_google_auth');
+                    logoutGoogleUser();
                     return;
                 }
 
@@ -465,7 +632,7 @@
                 localStorage.setItem('tssc_google_auth', JSON.stringify(authData));
                 updateAuthUI(authData.email);
             } catch (e) {
-                localStorage.removeItem('tssc_google_auth');
+                logoutGoogleUser();
             }
         }
 
@@ -503,7 +670,6 @@
                 });
         }
 
-        // 🌐 監聯跨分頁登入/登出狀態同步
         window.addEventListener('storage', function(event) {
             if (event.key === 'tssc_google_auth') {
                 location.reload();
