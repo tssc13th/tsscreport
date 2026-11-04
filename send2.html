@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📝 實名意見投遞 - TSSC13TH 胡台校意見箱</title>
+    <link rel="stylesheet" href="style.css">
+   
+    <div id="loginPromptArea" style="display: flex; flex-direction: column; align-items: center; padding: 20px;">
+    <label style="margin-bottom: 12px; font-weight: 600; color: #374151;">請登入學校信箱以繼續</label>
+    <button type="button" class="custom-google-btn" onclick="redirectToGoogleLogin()">
+        <img src="https://lh3.googleusercontent.com/COxitR2y5A_343_222602131" alt="Google logo" onerror="this.src='https://www.google.com/favicon.ico'" style="width: 20px; height: 20px; vertical-align: middle; margin-right: 8px;">
+        使用 Google 帳號登入
+    </button>
+</div>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f4f6f9;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .navbar {
+            background-color: #ffffff;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 0.8rem 0;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .nav-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: #111827;
+            font-weight: 700;
+            font-size: 1.15rem;
+            gap: 10px;
+        }
+
+        .site-logo {
+            height: 32px;
+            width: auto;
+            object-fit: contain;
+            vertical-align: middle;
+            filter: brightness(0);
+        }
+
+        .nav-menu {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-pill-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+            padding: 0.45rem 0.9rem;
+            font-size: 0.88rem;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            background-color: #f8fafc;
+            color: #475569;
+            border: 1px solid #e2e8f0;
+        }
+
+        .nav-pill-btn:hover {
+            background-color: #f1f5f9;
+            color: #1e293b;
+            border-color: #cbd5e1;
+        }
+
+        .nav-pill-btn.active {
+            background-color: #eff6ff;
+            color: #2563eb;
+            border-color: #bfdbfe;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 0 1.5rem;
+        }
+
+        .card {
+            background: #ffffff;
+            padding: 2.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .card h2 {
+            margin-bottom: 0.5rem;
+            color: #1f2937;
+            font-size: 1.5rem;
+        }
+
+        .description {
+            color: #6b7280;
+            font-size: 0.95rem;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #374151;
+            font-size: 0.95rem;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 1rem;
+            color: #1f2937;
+            background-color: #fff;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #d49a00;
+            box-shadow: 0 0 0 3px rgba(212, 154, 0, 0.15);
+        }
+
+        
+        .auth-container {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 1.25rem;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        #loginPromptArea {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            text-align: center;
+        }
+
+        .g_id_signin {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .user-info-box {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            background: #ffffff;
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+        }
+
+        .user-details span {
+            display: block;
+            font-size: 0.9rem;
+            color: #1e293b;
+            text-align: left;
+        }
+
+        .user-details .user-email {
+            font-weight: bold;
+            color: #2563eb;
+        }
+
+        .logout-google-btn {
+            background-color: #ef4444;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+
+        .logout-google-btn:hover {
+            background-color: #dc2626;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 0.875rem;
+            background-color: black;
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-top: 1rem;
+        }
+
+        .btn:hover {
+            background-color: black;
+        }
+
+        .btn:disabled {
+            background-color: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        @media screen and (max-width: 768px) {
+            .navbar .nav-container {
+                flex-direction: column;
+                align-items: center;
+                gap: 12px;
+                padding: 14px 16px;
+            }
+
+            .navbar .nav-brand {
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                font-size: 1.1rem;
+                width: 100%;
+            }
+
+            .navbar .nav-menu, 
+            .navbar .nav-links {
+                width: 100%;
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 8px;
+            }
+
+            .navbar .nav-pill-btn, 
+            .navbar .nav-item {
+                padding: 0.45rem 0.85rem;
+                font-size: 0.85rem;
+            }
+
+            .container {
+                padding: 0 12px;
+                margin: 10px auto 20px;
+            }
+
+            .card {
+                padding: 20px 16px;
+            }
+
+            .form-group input,
+            .form-group select,
+            .form-group textarea {
+                font-size: 16px !important;
+                padding: 10px 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+   
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="nav-brand">
+                <img src="tpshcmcsc.png" alt="會徽" class="site-logo">
+                <span class="brand-text">TSSC13TH 胡台校意見箱</span>
+            </a>
+            <div class="nav-menu">
+                <a href="index.html" class="nav-pill-btn"> 首頁與須知</a>
+                <a href="replies.html" class="nav-pill-btn"> 匿名回覆專區</a>
+                <a href="myreplies.html" class="nav-pill-btn active"> 我的實名回覆</a>
+                <a href="admin.html" class="nav-pill-btn"> 管理員後台</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+        <div class="card">
+            <h2>📝 實名意見投遞</h2>
+            <p class="description">請先透過學校官方 Google 帳號（@tshcmc.edu.vn）完成身分驗證登入後，即可填寫並送出實名意見。</p>
+            
+            <div class="auth-container">
+                <div id="loginPromptArea">
+                    <label style="margin-bottom: 8px; text-align: center; font-weight: 600; color: #374151;">請使用學校信箱進行身分驗證</label>
+                   
+                    <div id="g_id_onload"
+                         data-client_id="395361201007-8a19lv4248ao671d96nfsmg23d5igf6m.apps.googleusercontent.com"
+                         data-callback="handleCredentialResponse"
+                         data-auto_prompt="false">
+                    </div>
+                    <div class="g_id_signin"
+                         data-type="standard"
+                         data-shape="rectangular"
+                         data-theme="outline"
+                         data-text="signin_with"
+                         data-size="large"
+                         data-logo_alignment="left">
+                    </div>
+                </div>
+
+                <div id="userInfoArea" style="display: none; width: 100%;">
+                    <div class="user-info-box">
+                        <div class="user-details">
+                            <span>✅ 已驗證學校身分</span>
+                            <span id="loggedEmail" class="user-email"></span>
+                        </div>
+                        <button type="button" class="logout-google-btn" onclick="logoutGoogleUser()">登出</button>
+                    </div>
+                </div>
+            </div>
+
+            <form id="realnameForm">
+                <div class="form-group">
+                    <label for="name">姓名 <span style="color: red;">*</span>：</label>
+                    <input type="text" id="name" required placeholder="請輸入姓名">
+                </div>
+
+                <div class="form-group">
+                    <label for="class_name">班級 <span style="color: red;">*</span>：</label>
+                    <input type="text" id="class_name" required placeholder="例如：10A / 11B">
+                </div>
+
+                <div class="form-group">
+                    <label for="target_assignee">指定處理人員 / 部門（選填）：</label>
+                    <input type="text" id="target_assignee" placeholder="例如：會長、活動組（若無指定可留空）">
+                </div>
+
+                <div class="form-group">
+                    <label for="category">意見類別：</label>
+                    <select id="category">
+                        <option value="校園設施">校園設施</option>
+                        <option value="活動建議">活動建議</option>
+                        <option value="權益爭取">權益爭取</option>
+                        <option value="其他" selected>其他</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="content">意見內容 <span style="color: red;">*</span>：</label>
+                    <textarea id="content" rows="5" required placeholder="請詳細描述您的意見或建議..."></textarea>
+                </div>
+
+                <button type="submit" id="submitBtn" class="btn" disabled>請先完成 Google 學校信箱登入</button>
+            </form>
+        </div>
+    </main>
+
+    <footer style="text-align: center; padding: 20px; color: #94a3b8; font-size: 0.88rem;">
+        <p>胡志明市台灣學校學生會13th TPSHCMCSC13th © 2026 yucheng</p>
+    </footer>
+
+   <script>
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbyX_GsvbBdSfWdLYHys0beIzngkABgNmQq49YXd9ukuXAVGZzfS75yMQ33AkP0yoPrL/exec';
+        const TARGET_SHEET_ID = '18fxfF-BnNlDnhCH0NORbNeWXKSo1KHmljfPCkpvJTKo';
+        const CLIENT_ID = '395361201007-8a19lv4248ao671d96nfsmg23d5igf6m.apps.googleusercontent.com';
+        
+        let statusInterval = null;
+        let consecutiveFailures = 0;
+
+        function parseJwt(token) {
+            try {
+                const base64Url = token.split('.')[1];
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+                    return '%' + ('0' + c.charCodeAt(0).toString(16)).slice(-2);
+                }).join(''));
+                return JSON.parse(jsonPayload);
+            } catch (e) {
+                return null;
+            }
+        }
+
+        
+        function redirectToGoogleLogin() {
+            const redirectUri = window.location.href.split('#')[0].split('?')[0];
+            const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
+                `client_id=${encodeURIComponent(CLIENT_ID)}` +
+                `&redirect_uri=${encodeURIComponent(redirectUri)}` +
+                `&response_type=id_token` +
+                `&scope=${encodeURIComponent('openid email profile')}` +
+                `&nonce=${Date.now()}` +
+                `&prompt=select_account`; 
+
+            window.location.href = googleAuthUrl;
+        }
+
+       
+        function checkUrlForToken() {
+            const hash = window.location.hash.substring(1);
+            if (!hash) return false;
+
+            const params = new URLSearchParams(hash);
+            const idToken = params.get('id_token');
+
+            if (idToken) {
+                const responsePayload = parseJwt(idToken);
+                if (responsePayload && responsePayload.email) {
+                    const email = responsePayload.email.toLowerCase();
+                    const schoolEmailRegex = /^[a-zA-Z0-9._%+-]+@tshcmc\.edu\.vn$/i;
+                    
+                    if (!schoolEmailRegex.test(email)) {
+                        alert('驗證失敗：請務必使用您的學校官方信箱（@tshcmc.edu.vn）登入，非學校信箱無法進行實名投遞！');
+                        window.history.replaceState(null, null, window.location.pathname);
+                        return false;
+                    }
+
+                    const loginData = {
+                        email: email,
+                        token: idToken,
+                        timestamp: Date.now()
+                    };
+                    localStorage.setItem('tssc_google_auth', JSON.stringify(loginData));
+                    window.history.replaceState(null, null, window.location.pathname); 
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function updateAuthUI(email) {
+            const loginPrompt = document.getElementById('loginPromptArea');
+            const userInfo = document.getElementById('userInfoArea');
+            const loggedEmailSpan = document.getElementById('loggedEmail');
+            const submitBtn = document.getElementById('submitBtn');
+
+            if (loginPrompt) loginPrompt.style.display = 'none';
+            if (userInfo) userInfo.style.display = 'block';
+            if (loggedEmailSpan) loggedEmailSpan.innerText = email;
+            
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerText = '確認送出';
+            }
+        }
+
+        function logoutGoogleUser() {
+            
+            localStorage.removeItem('tssc_google_auth');
+
+            
+            location.reload();
+        }
+
+        function checkSessionValidity() {
+        
+            if (checkUrlForToken()) {
+                location.reload();
+                return;
+            }
+
+            const storedAuth = localStorage.getItem('tssc_google_auth');
+            if (!storedAuth) return;
+
+            try {
+                const authData = JSON.parse(storedAuth);
+                const now = Date.now();
+                const thirtyMinutes = 30 * 60 * 1000;
+
+                if (now - authData.timestamp > thirtyMinutes) {
+                    logoutGoogleUser();
+                    return;
+                }
+
+                authData.timestamp = now;
+                localStorage.setItem('tssc_google_auth', JSON.stringify(authData));
+                updateAuthUI(authData.email);
+            } catch (e) {
+                logoutGoogleUser();
+            }
+        }
+
+        function handleSystemErrorAndLock(reason) {
+            console.error('系統狀態檢測異常，啟動安全鎖定機制:', reason);
+            if (statusInterval) clearInterval(statusInterval);
+            window.location.href = 'lock.html';
+        }
+
+        function checkSystemStatus() {
+            fetch(`${GAS_URL}?action=checkLockStatus&spreadsheetId=${TARGET_SHEET_ID}&_t=${Date.now()}`)
+                .then(res => {
+                    if (!res.ok) throw new Error(`HTTP 錯誤 Status: ${res.status}`);
+                    return res.json();
+                })
+                .then(data => {
+                    if (data && typeof data.locked !== 'undefined') {
+                        consecutiveFailures = 0;
+                        if (data.locked === true) {
+                            if (statusInterval) clearInterval(statusInterval);
+                            window.location.href = 'lock.html';
+                        } else if (data.maintenance === true) {
+                            if (statusInterval) clearInterval(statusInterval);
+                            window.location.href = 'maintenance.html';
+                        }
+                    } else {
+                        consecutiveFailures++;
+                        if (consecutiveFailures >= 3) handleSystemErrorAndLock('無效的回傳資料格式');
+                    }
+                })
+                .catch(err => {
+                    console.warn('檢測連線波動:', err.message);
+                    consecutiveFailures++;
+                    if (consecutiveFailures >= 3) handleSystemErrorAndLock(err.message || '連線失敗');
+                });
+        }
+
+        
+        window.addEventListener('storage', function(event) {
+            if (event.key === 'tssc_google_auth') {
+                location.reload();
+            }
+        });
+
+        window.onload = function() {
+            checkSessionValidity();
+            checkSystemStatus();
+            statusInterval = setInterval(checkSystemStatus, 5000);
+        };
+
+        document.getElementById('realnameForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const storedAuth = localStorage.getItem('tssc_google_auth');
+            if (!storedAuth) {
+                alert('請先完成 Google 學校信箱登入驗證！');
+                return;
+            }
+
+            let emailVal = '';
+            try {
+                emailVal = JSON.parse(storedAuth).email;
+            } catch (err) {
+                alert('驗證狀態異常，請重新登入！');
+                logoutGoogleUser();
+                return;
+            }
+
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerText = '處理中，請稍候...';
+
+            const targetAssigneeVal = document.getElementById('target_assignee').value.trim();
+
+            const payload = {
+                action: 'addFeedback',
+                type: 'realname',
+                name: document.getElementById('name').value.trim(),
+                class_name: document.getElementById('class_name').value.trim(),
+                email: emailVal,
+                target_assignee: targetAssigneeVal || '學生會',
+                assignee: targetAssigneeVal || '學生會',
+                category: document.getElementById('category').value,
+                content: document.getElementById('content').value.trim()
+            };
+
+            fetch(GAS_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(payload),
+                redirect: 'follow'
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert('投遞成功！感謝您的建言，學生會已將確認信記錄。');
+                    document.getElementById('realnameForm').reset();
+                    window.location.href = 'index.html';
+                } else {
+                    alert('投遞失敗：' + (data.error || '伺服器錯誤'));
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = '確認送出';
+                }
+            })
+            .catch(err => {
+                console.error('Fetch Error:', err);
+                alert('連線失敗，請稍後再試！');
+                submitBtn.disabled = false;
+                submitBtn.innerText = '確認送出';
+            });
+        });
+    </script>
+</body>
+</html>
