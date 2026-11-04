@@ -46,12 +46,13 @@
         line-height: 1.6;
     }
 
-    .navbar {
+.navbar {
+    width: 100%;             
     background-color: #ffffff;
-    border-bottom: 1px solid #e5e7eb;
+    border-bottom: 1px solid #e5e7eb; 
     padding: 0.8rem 0;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); 
-    position: sticky; 
+    box-shadow: none;       
+    position: sticky;
     top: 0;
     z-index: 100;
 }
@@ -285,9 +286,7 @@
         border-top: 1px solid #e2e8f0;
     }
 
-    /* ===== 手機版 (768px 以下) 左側隱藏選單與排版優化 ===== */
-    /* ================= 📱 手機專用 RWD 響應式與側邊抽屜選單優化 ================= */
-@media screen and (max-width: 768px) {
+    @media screen and (max-width: 768px) {
     .navbar .nav-container {
         display: flex;
         justify-content: space-between;
@@ -298,7 +297,7 @@
 
     /* 顯示漢堡按鈕 */
     .hamburger-btn {
-        display: inline-flex;
+        display: inline-flex !important;
         align-items: center;
         justify-content: center;
         background: transparent;
@@ -324,7 +323,7 @@
         height: auto;
     }
 
-    /* 💡 左側隱藏抽屜選單本體（修復文字看不見與排版問題） */
+    /* 💡 手機版左側隱藏抽屜選單本體 */
     .nav-menu, .nav-links {
         position: fixed;
         top: 0;
@@ -333,12 +332,12 @@
         height: 100vh;
         background-color: #ffffff !important;
         box-shadow: 4px 0 15px rgba(0, 0, 0, 0.15);
-        z-index: 1000;
+        z-index: 2000 !important;
         display: flex !important;
         flex-direction: column !important;
         justify-content: flex-start !important;
         align-items: stretch !important;
-        padding: 70px 20px 20px 20px !important;
+        padding: 20px !important;
         gap: 12px !important;
         transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
@@ -348,7 +347,36 @@
         left: 0 !important;
     }
 
-    /* 💡 強制讓抽屜內的按鈕文字完整顯示且靠左對齊 */
+    /* 📌 手機版抽屜頂部標題區塊（與 ✕ 按鈕並排） */
+    .drawer-header {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        padding-bottom: 12px;
+        margin-bottom: 8px;
+        border-bottom: 1px solid #e2e8f0;
+        width: 100%;
+    }
+
+    .drawer-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #1e293b;
+    }
+
+    /* 關閉按鈕 (✕) */
+    .close-drawer-btn {
+        display: block !important;
+        position: static !important;
+        background: transparent;
+        border: none;
+        font-size: 1.4rem;
+        color: #64748b;
+        cursor: pointer;
+        padding: 2px 6px;
+    }
+
+    /* 💡 手機版抽屜內的選單按鈕 */
     .nav-menu .nav-pill-btn, .nav-links .nav-item {
         width: 100% !important;
         display: flex !important;
@@ -359,48 +387,16 @@
         color: #475569 !important;
         background-color: #f8fafc !important;
         border: 1px solid #e2e8f0 !important;
+        border-radius: 8px !important;
         white-space: nowrap;
+        cursor: pointer !important;
+        text-decoration: none;
     }
 
     .nav-menu .nav-pill-btn.active, .nav-links .nav-item.active {
         background-color: #eff6ff !important;
         color: #2563eb !important;
         border-color: #bfdbfe !important;
-    }
-
-    /* 關閉按鈕 (✕) */
-    .close-drawer-btn {
-        display: block !important;
-        position: absolute;
-        top: 16px;
-        right: 16px;
-        background: transparent;
-        border: none;
-        font-size: 1.5rem;
-        color: #64748b;
-        cursor: pointer;
-        padding: 4px;
-        z-index: 1001;
-    }
-
-    /* 背景半透明遮罩 */
-    .drawer-overlay {
-        display: block;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        background-color: rgba(0, 0, 0, 0.4);
-        z-index: 999;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.3s ease;
-    }
-
-    .drawer-overlay.active {
-        opacity: 1;
-        pointer-events: auto;
     }
 
     .container, .admin-header-bar, #admin-dashboard {
@@ -421,6 +417,8 @@
         padding: 10px 12px;
     }
 }
+    
+
 </style>
 </head>
 <body>
@@ -433,7 +431,7 @@
         </button>
 
         <!-- 品牌 Emblem 與名稱 -->
-        <a href="index.html" class="nav-brand">
+        <a href="admin.html" class="nav-brand">
             <img src="tpshcmcsc.png" alt="會徽" class="site-logo">
             <span class="brand-text">TSSC13TH 胡台校意見箱管理後台</span>
         </a>
@@ -850,15 +848,25 @@
                 location.reload();
             }
         });
-        function toggleDrawer() {
+     
+function toggleDrawer() {
     const drawer = document.getElementById('navDrawer');
-    const overlay = document.getElementById('drawerOverlay');
-    
-    if (drawer && overlay) {
+    if (drawer) {
         drawer.classList.toggle('open');
-        overlay.classList.toggle('active');
     }
 }
+
+document.addEventListener('click', function(event) {
+    const drawer = document.getElementById('navDrawer');
+    const hamburgerBtn = document.querySelector('.hamburger-btn');
+
+    if (drawer && drawer.classList.contains('open')) {
+        
+        if (!drawer.contains(event.target) && !hamburgerBtn.contains(event.target)) {
+            drawer.classList.remove('open');
+        }
+    }
+});
     </script>   
 </body>
 </html>

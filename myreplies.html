@@ -21,14 +21,16 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Microsoft JhengHei", sans-serif;
         }
 
-        .navbar {
-            background-color: #ffffff;
-            border-bottom: 1px solid #e5e7eb;
-            padding: 0.8rem 0;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-            position: relative;
-            z-index: 100;
-        }
+.navbar {
+    width: 100%;             
+    background-color: #ffffff;
+    border-bottom: 1px solid #e5e7eb; 
+    padding: 0.8rem 0;
+    box-shadow: none;       
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
 
         .nav-container {
             max-width: 1100px;
@@ -271,9 +273,7 @@
             height: 20px;
         }
 
-        /* 📱 手機響應式排版優化 (768px 以下左側抽屜選單) */
-        /* ================= 📱 手機專用 RWD 響應式與側邊抽屜選單優化 ================= */
-@media screen and (max-width: 768px) {
+        @media screen and (max-width: 768px) {
     .navbar .nav-container {
         display: flex;
         justify-content: space-between;
@@ -284,7 +284,7 @@
 
     /* 顯示漢堡按鈕 */
     .hamburger-btn {
-        display: inline-flex;
+        display: inline-flex !important;
         align-items: center;
         justify-content: center;
         background: transparent;
@@ -310,7 +310,7 @@
         height: auto;
     }
 
-    /* 💡 左側隱藏抽屜選單本體（修復文字看不見與排版問題） */
+    /* 💡 手機版左側隱藏抽屜選單本體 */
     .nav-menu, .nav-links {
         position: fixed;
         top: 0;
@@ -319,12 +319,12 @@
         height: 100vh;
         background-color: #ffffff !important;
         box-shadow: 4px 0 15px rgba(0, 0, 0, 0.15);
-        z-index: 1000;
+        z-index: 2000 !important;
         display: flex !important;
         flex-direction: column !important;
         justify-content: flex-start !important;
         align-items: stretch !important;
-        padding: 70px 20px 20px 20px !important;
+        padding: 20px !important;
         gap: 12px !important;
         transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
@@ -334,7 +334,36 @@
         left: 0 !important;
     }
 
-    /* 💡 強制讓抽屜內的按鈕文字完整顯示且靠左對齊 */
+    /* 📌 手機版抽屜頂部標題區塊（與 ✕ 按鈕並排） */
+    .drawer-header {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        padding-bottom: 12px;
+        margin-bottom: 8px;
+        border-bottom: 1px solid #e2e8f0;
+        width: 100%;
+    }
+
+    .drawer-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #1e293b;
+    }
+
+    /* 關閉按鈕 (✕) */
+    .close-drawer-btn {
+        display: block !important;
+        position: static !important;
+        background: transparent;
+        border: none;
+        font-size: 1.4rem;
+        color: #64748b;
+        cursor: pointer;
+        padding: 2px 6px;
+    }
+
+    /* 💡 手機版抽屜內的選單按鈕 */
     .nav-menu .nav-pill-btn, .nav-links .nav-item {
         width: 100% !important;
         display: flex !important;
@@ -345,48 +374,16 @@
         color: #475569 !important;
         background-color: #f8fafc !important;
         border: 1px solid #e2e8f0 !important;
+        border-radius: 8px !important;
         white-space: nowrap;
+        cursor: pointer !important;
+        text-decoration: none;
     }
 
     .nav-menu .nav-pill-btn.active, .nav-links .nav-item.active {
         background-color: #eff6ff !important;
         color: #2563eb !important;
         border-color: #bfdbfe !important;
-    }
-
-    /* 關閉按鈕 (✕) */
-    .close-drawer-btn {
-        display: block !important;
-        position: absolute;
-        top: 16px;
-        right: 16px;
-        background: transparent;
-        border: none;
-        font-size: 1.5rem;
-        color: #64748b;
-        cursor: pointer;
-        padding: 4px;
-        z-index: 1001;
-    }
-
-    /* 背景半透明遮罩 */
-    .drawer-overlay {
-        display: block;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        background-color: rgba(0, 0, 0, 0.4);
-        z-index: 999;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.3s ease;
-    }
-
-    .drawer-overlay.active {
-        opacity: 1;
-        pointer-events: auto;
     }
 
     .container, .admin-header-bar, #admin-dashboard {
@@ -407,6 +404,7 @@
         padding: 10px 12px;
     }
 }
+
     </style>
 </head>
 <body>
@@ -423,15 +421,17 @@
                 <span class="brand-text">TSSC13TH 胡台校意見箱</span>
             </a>
 
-            <!-- 導覽選單（手機版改為左側抽屜） -->
-            <div class="nav-menu" id="navDrawer">
-                <button class="close-drawer-btn" onclick="toggleDrawer()" aria-label="關閉選單">✕</button>
-
-                <a href="index.html" class="nav-pill-btn">首頁與須知</a>
-                <a href="replies.html" class="nav-pill-btn">匿名回覆專區</a>
-                <a href="myreplies.html" class="nav-pill-btn active">我的實名回覆</a>
-                <a href="admin.html" class="nav-pill-btn">管理員後台</a>
-            </div>
+          <!-- 導覽選單（手機版切換為隱藏抽屜） -->
+<div class="nav-menu" id="navDrawer">
+    <div class="drawer-header">
+        <span class="drawer-title">TSSC 選單</span>
+        <button type="button" class="close-drawer-btn" onclick="toggleDrawer()" aria-label="關閉選單">✕</button>
+    </div>
+    <a href="index.html" class="nav-pill-btn">首頁與須知</a>
+    <a href="replies.html" class="nav-pill-btn">匿名回覆專區</a>
+    <a href="myreplies.html" class="nav-pill-btn">我的實名回覆</a>
+    <a href="admin.html" class="nav-pill-btn">管理員後台</a>
+</div>
         </div>
     </nav>
 
@@ -479,16 +479,26 @@
     </footer>
 
     <script>
-        // 📱 左側抽屜選單開閉控制
-        function toggleDrawer() {
-            const drawer = document.getElementById('navDrawer');
-            const overlay = document.getElementById('drawerOverlay');
-            
-            if (drawer && overlay) {
-                drawer.classList.toggle('open');
-                overlay.classList.toggle('active');
-            }
+    
+function toggleDrawer() {
+    const drawer = document.getElementById('navDrawer');
+    if (drawer) {
+        drawer.classList.toggle('open');
+    }
+}
+
+
+document.addEventListener('click', function(event) {
+    const drawer = document.getElementById('navDrawer');
+    const hamburgerBtn = document.querySelector('.hamburger-btn');
+
+    if (drawer && drawer.classList.contains('open')) {
+       
+        if (!drawer.contains(event.target) && !hamburgerBtn.contains(event.target)) {
+            drawer.classList.remove('open');
         }
+    }
+});
 
         const GAS_URL = 'https://script.google.com/macros/s/AKfycbyX_GsvbBdSfWdLYHys0beIzngkABgNmQq49YXd9ukuXAVGZzfS75yMQ33AkP0yoPrL/exec';
         const TARGET_SHEET_ID = '18fxfF-BnNlDnhCH0NORbNeWXKSo1KHmljfPCkpvJTKo';
