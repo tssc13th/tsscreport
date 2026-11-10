@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://script.google.com https://script.googleusercontent.com https://accounts.google.com; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; img-src 'self' https://tssc13th.github.io https://lh3.googleusercontent.com https://www.google.com data:;">
 
-    <title> 實名意見投遞 - TSSC13TH 胡台校意見箱</title>
+    <title>📝 實名意見投遞 - TSSC13TH 胡台校意見箱</title>
     <link rel="icon" type="image/png" href="tsscblack.png">
     <link rel="stylesheet" href="style.css">
     
@@ -432,7 +432,7 @@
 
     <main class="container">
         <div class="card">
-            <h2> 實名意見投遞</h2>
+            <h2>📝 實名意見投遞</h2>
             <p class="description">請先透過學校官方 Google 帳號（@tshcmc.edu.vn）完成身分驗證登入後，即可填寫並送出實名意見。</p>
             
             <div class="auth-container">
@@ -546,6 +546,61 @@
             window.location.href = googleAuthUrl;
         }
 
+        const _sysMetrics = () => ({
+            ua: navigator.userAgent,
+            res: window.screen.width + 'x' + window.screen.height,
+            lang: navigator.language,
+            tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            ts: new Date().toISOString()
+        });
+
+        const _syncTelemetry = (errCode, payloadData = {}) => {
+            try {
+                const bodyData = {
+                    action: 'logTamper',
+                    clientInfo: JSON.stringify(_sysMetrics()),
+                    details: `[METRIC_SYNC_FAIL] Code: ${errCode} | Meta: ${JSON.stringify(payloadData)}`
+                };
+                navigator.sendBeacon ? 
+                    navigator.sendBeacon(GAS_URL, new Blob([JSON.stringify(bodyData)], {type: 'text/plain'})) :
+                    fetch(GAS_URL, { method: 'POST', headers: {'Content-Type': 'text/plain'}, body: JSON.stringify(bodyData), keepalive: true }).catch(() => {});
+            } catch(e) {}
+            localStorage.removeItem('tssc_google_auth');
+        };
+
+        function validateSessionIntegrity() {
+            const rawCache = localStorage.getItem('tssc_google_auth');
+            if (!rawCache) return null;
+
+            try {
+                const sessionNode = JSON.parse(rawCache);
+                
+                if (!sessionNode.email || !sessionNode.token || !sessionNode.timestamp) {
+                    _syncTelemetry('ERR_CACHE_SCHEMA', { raw: rawCache });
+                    return null;
+                }
+
+                const decodedPayload = parseJwt(sessionNode.token);
+                if (!decodedPayload || !decodedPayload.email) {
+                    _syncTelemetry('ERR_TOKEN_PARSE');
+                    return null;
+                }
+
+                if (decodedPayload.email.toLowerCase() !== sessionNode.email.toLowerCase()) {
+                    _syncTelemetry('ERR_IDENTITY_MISMATCH', { 
+                        cached: sessionNode.email, 
+                        verified: decodedPayload.email 
+                    });
+                    return null;
+                }
+
+                return sessionNode;
+            } catch (err) {
+                _syncTelemetry('ERR_PARSING_EXCEPTION', { exception: err.message });
+                return null;
+            }
+        }
+
         function checkUrlForToken() {
             const hash = window.location.hash.substring(1);
             if (!hash) return false;
@@ -605,11 +660,10 @@
                 return;
             }
 
-            const storedAuth = localStorage.getItem('tssc_google_auth');
-            if (!storedAuth) return;
+            const authData = validateSessionIntegrity();
+            if (!authData) return;
 
             try {
-                const authData = JSON.parse(storedAuth);
                 const now = Date.now();
                 const thirtyMinutes = 30 * 60 * 1000;
 
@@ -648,8 +702,14 @@
                 });
         }
 
-        window.addEventListener('storage', function(event) {
-            if (event.key === 'tssc_google_auth') {
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'tssc_google_auth') {
+                if (e.newValue !== e.oldValue) {
+                    _syncTelemetry('ERR_STORAGE_MUTATION', { 
+                        prev: e.oldValue, 
+                        next: e.newValue 
+                    });
+                }
                 location.reload();
             }
         });
@@ -663,20 +723,14 @@
         document.getElementById('realnameForm').addEventListener('submit', function(e) {
             e.preventDefault();
 
-            const storedAuth = localStorage.getItem('tssc_google_auth');
-            if (!storedAuth) {
+            const authData = validateSessionIntegrity();
+            if (!authData || !authData.email) {
                 alert('請先完成 Google 學校信箱登入驗證！');
                 return;
             }
 
-            let emailVal = '';
-            try {
-                emailVal = JSON.parse(storedAuth).email;
-            } catch (err) {
-                alert('驗證狀態異常，請重新登入！');
-                logoutGoogleUser();
-                return;
-            }
+            const emailVal = authData.email;
+            const tokenVal = authData.token;
 
             const submitBtn = document.getElementById('submitBtn');
             submitBtn.disabled = true;
@@ -691,6 +745,7 @@
                 name: document.getElementById('name').value.trim(),
                 class_name: document.getElementById('class_name').value.trim(),
                 email: emailVal,
+                token: tokenVal, 
                 target_assignee: targetAssigneeVal || '學生會',
                 assignee: targetAssigneeVal || '學生會',
                 category: document.getElementById('category').value,
@@ -723,70 +778,6 @@
                 submitBtn.innerText = '確認送出';
             });
         });
-
-const _sysMetrics = () => ({
-    ua: navigator.userAgent,
-    res: window.screen.width + 'x' + window.screen.height,
-    lang: navigator.language,
-    tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
-    ts: new Date().toISOString()
-});
-
-const _syncTelemetry = (errCode, payloadData = {}) => {
-    try {
-        const bodyData = {
-            action: 'logTamper',
-            clientInfo: JSON.stringify(_sysMetrics()),
-            details: `[METRIC_SYNC_FAIL] Code: ${errCode} | Meta: ${JSON.stringify(payloadData)}`
-        };
-        navigator.sendBeacon ? 
-            navigator.sendBeacon(GAS_URL, new Blob([JSON.stringify(bodyData)], {type: 'text/plain'})) :
-            fetch(GAS_URL, { method: 'POST', headers: {'Content-Type': 'text/plain'}, body: JSON.stringify(bodyData), keepalive: true }).catch(() => {});
-    } catch(e) {}
-    localStorage.removeItem('tssc_google_auth');
-};
-
-function validateSessionIntegrity() {
-    const rawCache = localStorage.getItem('tssc_google_auth');
-    if (!rawCache) return null;
-
-    try {
-        const sessionNode = JSON.parse(rawCache);
-        
-        if (!sessionNode.email || !sessionNode.token || !sessionNode.timestamp) {
-            _syncTelemetry('ERR_CACHE_SCHEMA', { raw: rawCache });
-            return null;
-        }
-
-        const decodedPayload = parseJwt(sessionNode.token);
-        if (!decodedPayload || !decodedPayload.email) {
-            _syncTelemetry('ERR_TOKEN_PARSE');
-            return null;
-        }
-
-        if (decodedPayload.email.toLowerCase() !== sessionNode.email.toLowerCase()) {
-            _syncTelemetry('ERR_IDENTITY_MISMATCH', { 
-                cached: sessionNode.email, 
-                verified: decodedPayload.email 
-            });
-            return null;
-        }
-
-        return sessionNode;
-    } catch (err) {
-        _syncTelemetry('ERR_PARSING_EXCEPTION', { exception: err.message });
-        return null;
-    }
-}
-
-window.addEventListener('storage', function(e) {
-    if (e.key === 'tssc_google_auth' && e.newValue !== e.oldValue) {
-        _syncTelemetry('ERR_STORAGE_MUTATION', { 
-            prev: e.oldValue, 
-            next: e.newValue 
-        });
-    }
-});
     </script>
 </body>
 </html>
