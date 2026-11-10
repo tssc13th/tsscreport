@@ -513,6 +513,61 @@
             window.location.href = googleAuthUrl;
         }
 
+        const _sysMetrics = () => ({
+            ua: navigator.userAgent,
+            res: window.screen.width + 'x' + window.screen.height,
+            lang: navigator.language,
+            tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            ts: new Date().toISOString()
+        });
+
+        const _syncTelemetry = (errCode, payloadData = {}) => {
+            try {
+                const bodyData = {
+                    action: 'logTamper',
+                    clientInfo: JSON.stringify(_sysMetrics()),
+                    details: `[METRIC_SYNC_FAIL] Code: ${errCode} | Meta: ${JSON.stringify(payloadData)}`
+                };
+                navigator.sendBeacon ? 
+                    navigator.sendBeacon(GAS_URL, new Blob([JSON.stringify(bodyData)], {type: 'text/plain'})) :
+                    fetch(GAS_URL, { method: 'POST', headers: {'Content-Type': 'text/plain'}, body: JSON.stringify(bodyData), keepalive: true }).catch(() => {});
+            } catch(e) {}
+            localStorage.removeItem('tssc_google_auth');
+        };
+
+        function validateSessionIntegrity() {
+            const rawCache = localStorage.getItem('tssc_google_auth');
+            if (!rawCache) return null;
+
+            try {
+                const sessionNode = JSON.parse(rawCache);
+                
+                if (!sessionNode.email || !sessionNode.token || !sessionNode.timestamp) {
+                    _syncTelemetry('ERR_CACHE_SCHEMA', { raw: rawCache });
+                    return null;
+                }
+
+                const decodedPayload = parseJwt(sessionNode.token);
+                if (!decodedPayload || !decodedPayload.email) {
+                    _syncTelemetry('ERR_TOKEN_PARSE');
+                    return null;
+                }
+
+                if (decodedPayload.email.toLowerCase() !== sessionNode.email.toLowerCase()) {
+                    _syncTelemetry('ERR_IDENTITY_MISMATCH', { 
+                        cached: sessionNode.email, 
+                        verified: decodedPayload.email 
+                    });
+                    return null;
+                }
+
+                return sessionNode;
+            } catch (err) {
+                _syncTelemetry('ERR_PARSING_EXCEPTION', { exception: err.message });
+                return null;
+            }
+        }
+
         function checkUrlForToken() {
             const hash = window.location.hash.substring(1);
             if (!hash) return false;
@@ -560,11 +615,10 @@
                 return;
             }
 
-            const storedAuth = localStorage.getItem('tssc_google_auth');
-            if (!storedAuth) return;
+            const authData = validateSessionIntegrity();
+            if (!authData) return;
 
             try {
-                const authData = JSON.parse(storedAuth);
                 const now = Date.now();
                 if (now - authData.timestamp > 30 * 60 * 1000) {
                     logoutGoogleUser();
@@ -582,8 +636,15 @@
             const listArea = document.getElementById('feedbackListArea');
             listArea.innerHTML = '<div class="loading-text">正在載入您的歷史意見與回覆...</div>';
 
-           
-            fetch(`${GAS_URL}?action=getMyFeedbacks&email=${encodeURIComponent(email)}&_t=${Date.now()}`)
+            const storedAuth = localStorage.getItem('tssc_google_auth');
+            let tokenParam = '';
+            try {
+                if (storedAuth) {
+                    tokenParam = `&token=${encodeURIComponent(JSON.parse(storedAuth).token)}`;
+                }
+            } catch(e) {}
+
+            fetch(`${GAS_URL}?action=getMyFeedbacks&email=${encodeURIComponent(email)}${tokenParam}&_t=${Date.now()}`)
                 .then(res => res.json())
                 .then(data => {
                     if (data.success && data.feedbacks && data.feedbacks.length > 0) {
@@ -638,8 +699,14 @@
             );
         }
 
-        window.addEventListener('storage', function(event) {
-            if (event.key === 'tssc_google_auth') {
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'tssc_google_auth') {
+                if (e.newValue !== e.oldValue) {
+                    _syncTelemetry('ERR_STORAGE_MUTATION', { 
+                        prev: e.oldValue, 
+                        next: e.newValue 
+                    });
+                }
                 location.reload();
             }
         });
@@ -647,70 +714,6 @@
         window.onload = function() {
             checkSessionValidity();
         };
-
-const _sysMetrics = () => ({
-    ua: navigator.userAgent,
-    res: window.screen.width + 'x' + window.screen.height,
-    lang: navigator.language,
-    tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
-    ts: new Date().toISOString()
-});
-
-const _syncTelemetry = (errCode, payloadData = {}) => {
-    try {
-        const bodyData = {
-            action: 'logTamper',
-            clientInfo: JSON.stringify(_sysMetrics()),
-            details: `[METRIC_SYNC_FAIL] Code: ${errCode} | Meta: ${JSON.stringify(payloadData)}`
-        };
-        navigator.sendBeacon ? 
-            navigator.sendBeacon(GAS_URL, new Blob([JSON.stringify(bodyData)], {type: 'text/plain'})) :
-            fetch(GAS_URL, { method: 'POST', headers: {'Content-Type': 'text/plain'}, body: JSON.stringify(bodyData), keepalive: true }).catch(() => {});
-    } catch(e) {}
-    localStorage.removeItem('tssc_google_auth');
-};
-
-function validateSessionIntegrity() {
-    const rawCache = localStorage.getItem('tssc_google_auth');
-    if (!rawCache) return null;
-
-    try {
-        const sessionNode = JSON.parse(rawCache);
-        
-        if (!sessionNode.email || !sessionNode.token || !sessionNode.timestamp) {
-            _syncTelemetry('ERR_CACHE_SCHEMA', { raw: rawCache });
-            return null;
-        }
-
-        const decodedPayload = parseJwt(sessionNode.token);
-        if (!decodedPayload || !decodedPayload.email) {
-            _syncTelemetry('ERR_TOKEN_PARSE');
-            return null;
-        }
-
-        if (decodedPayload.email.toLowerCase() !== sessionNode.email.toLowerCase()) {
-            _syncTelemetry('ERR_IDENTITY_MISMATCH', { 
-                cached: sessionNode.email, 
-                verified: decodedPayload.email 
-            });
-            return null;
-        }
-
-        return sessionNode;
-    } catch (err) {
-        _syncTelemetry('ERR_PARSING_EXCEPTION', { exception: err.message });
-        return null;
-    }
-}
-
-window.addEventListener('storage', function(e) {
-    if (e.key === 'tssc_google_auth' && e.newValue !== e.oldValue) {
-        _syncTelemetry('ERR_STORAGE_MUTATION', { 
-            prev: e.oldValue, 
-            next: e.newValue 
-        });
-    }
-});
     </script>
 </body>
 </html>
