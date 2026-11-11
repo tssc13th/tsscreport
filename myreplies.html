@@ -653,7 +653,6 @@
             const listArea = document.getElementById('feedbackListArea');
             listArea.innerHTML = '<div class="loading-text">正在載入您的歷史意見與回覆...</div>';
 
-            
             if (cachedClientIp === 'Detecting...') {
                 await new Promise(r => setTimeout(r, 800));
             }
@@ -672,21 +671,19 @@
                 localStorage.setItem('tssc_v_id', vid);
             }
 
-            try {
-                const response = await fetch(GAS_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({
-                        action: 'getMyFeedbacks',
-                        email: email,
-                        token: tokenVal,
-                        vid: vid,
-                        clientIp: cachedClientIp,
-                        clientInfo: JSON.stringify(_sysMetrics())
-                    })
-                });
+            const queryParams = new URLSearchParams({
+                action: 'getMyFeedbacks',
+                email: email,
+                token: tokenVal,
+                vid: vid,
+                clientIp: cachedClientIp,
+                _t: Date.now()
+            });
 
+            try {
+                const response = await fetch(`${GAS_URL}?${queryParams.toString()}`);
                 const data = await response.json();
+                
                 if (data.success && data.feedbacks && data.feedbacks.length > 0) {
                     renderFeedbacks(data.feedbacks);
                 } else if (data.success && (!data.feedbacks || data.feedbacks.length === 0)) {
