@@ -29,7 +29,7 @@
             background-color: #ffffff;
             border-bottom: 1px solid #e5e7eb; 
             padding: 0.8rem 0;
-            box-shadow: none;       
+            box-shadow: none;        
             position: sticky;
             top: 0;
             z-index: 100;
@@ -139,25 +139,28 @@
             text-align: center;
         }
 
+        /* 放大並美化已登入的使用者資訊外框 */
         .user-info-bar {
             display: flex;
             justify-content: space-between;
             align-items: center;
             background: #f8fafc;
-            padding: 12px 18px;
-            border-radius: 10px;
-            border: 1px solid #e2e8f0;
+            padding: 18px 24px;
+            border-radius: 12px;
+            border: 1px solid #cbd5e1;
             margin-bottom: 24px;
+            width: 100%;
         }
 
         .user-details span {
             display: block;
-            font-size: 0.88rem;
+            font-size: 0.95rem;
             color: #64748b;
+            margin-bottom: 2px;
         }
 
         .user-details .user-email {
-            font-size: 0.98rem;
+            font-size: 1.1rem;
             font-weight: 700;
             color: #2563eb;
             word-break: break-all;
@@ -167,12 +170,14 @@
             background-color: #ef4444;
             color: white;
             border: none;
-            padding: 6px 14px;
-            border-radius: 6px;
-            font-size: 0.85rem;
+            padding: 8px 18px;
+            border-radius: 8px;
+            font-size: 0.9rem;
             cursor: pointer;
             font-weight: 600;
             transition: background 0.2s;
+            flex-shrink: 0;
+            margin-left: 12px;
         }
 
         .logout-google-btn:hover {
@@ -430,7 +435,7 @@
     <div class="drawer-overlay" id="drawerOverlay" onclick="toggleDrawer()"></div>
 
     <header class="hero-header">
-        <h1>我的實名意見與回覆(目前正在修復中)</h1>
+        <h1>我的實名意見與回覆(維修中)</h1>
         <p class="hero-subtitle">登入學校信箱以查詢您提交過的實名建言及處理進度</p>
     </header>
 
@@ -455,7 +460,7 @@
             </div>
 
             <div id="feedbackListArea">
-
+                
             </div>
         </div>
     </main>
@@ -486,20 +491,6 @@
         const GAS_URL = 'https://script.google.com/macros/s/AKfycbzXm5TiQss1GUKkDF4TOZJMqAeraA63vrpecSEzAuIvcNOvGjF51HFWnNutWc1Mjx4f/exec';
         const CLIENT_ID = '434067788519-6s6r01fhhtn2d5200hmu2aqsh9v6dtoh.apps.googleusercontent.com';
         let currentUserEmail = '';
-        let cachedClientIp = 'Detecting...';
-
-        async function fetchClientIp() {
-            try {
-                const res = await fetch('https://api.ipify.org?format=json', { signal: AbortSignal.timeout(3000) });
-                const data = await res.json();
-                if (data && data.ip) {
-                    cachedClientIp = data.ip;
-                }
-            } catch (e) {
-                cachedClientIp = 'Unknown IP';
-            }
-        }
-        fetchClientIp();
 
         function parseJwt(token) {
             try {
@@ -528,7 +519,6 @@
         }
 
         const _sysMetrics = () => ({
-            ip: cachedClientIp,
             ua: navigator.userAgent,
             res: window.screen.width + 'x' + window.screen.height,
             lang: navigator.language,
@@ -540,7 +530,6 @@
             try {
                 const bodyData = {
                     action: 'logTamper',
-                    clientIp: cachedClientIp,
                     clientInfo: JSON.stringify(_sysMetrics()),
                     details: `[METRIC_SYNC_FAIL] Code: ${errCode} | Meta: ${JSON.stringify(payloadData)}`
                 };
@@ -648,35 +637,13 @@
             }
         }
 
-       
         async function loadMyFeedbacks(email) {
             const listArea = document.getElementById('feedbackListArea');
             listArea.innerHTML = '<div class="loading-text">正在載入您的歷史意見與回覆...</div>';
 
-            if (cachedClientIp === 'Detecting...') {
-                await new Promise(r => setTimeout(r, 800));
-            }
-
-            const storedAuth = localStorage.getItem('tssc_google_auth');
-            let tokenVal = '';
-            try {
-                if (storedAuth) {
-                    tokenVal = JSON.parse(storedAuth).token;
-                }
-            } catch(e) {}
-
-            let vid = localStorage.getItem('tssc_v_id');
-            if (!vid) {
-                vid = 'VID_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
-                localStorage.setItem('tssc_v_id', vid);
-            }
-
             const queryParams = new URLSearchParams({
                 action: 'getMyFeedbacks',
                 email: email,
-                token: tokenVal,
-                vid: vid,
-                clientIp: cachedClientIp,
                 _t: Date.now()
             });
 
@@ -689,12 +656,6 @@
                 } else if (data.success && (!data.feedbacks || data.feedbacks.length === 0)) {
                     listArea.innerHTML = '<div class="empty-text">目前尚無您使用此信箱提交的意見記錄。</div>';
                 } else {
-                    if (data.error && (data.error.includes('憑證') || data.error.includes('驗證'))) {
-                        localStorage.removeItem('tssc_google_auth');
-                        alert('您的登入憑證已過期或失效，請重新登入學校信箱。');
-                        location.reload();
-                        return;
-                    }
                     listArea.innerHTML = `<div class="empty-text" style="color: #ef4444;">載入失敗：${data.error || '未知錯誤'}</div>`;
                 }
             } catch (err) {
