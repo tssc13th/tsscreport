@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://script.google.com https://script.googleusercontent.com https://accounts.google.com; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; img-src 'self' https://tssc13th.github.io https://lh3.googleusercontent.com https://www.google.com data:;">
+    <!-- 允許背景安全取得 IP 的 CSP 設定 -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://script.google.com https://script.googleusercontent.com https://accounts.google.com https://api.ipify.org; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; img-src 'self' https://tssc13th.github.io https://lh3.googleusercontent.com https://www.google.com data:;">
 
     <title>我的實名回覆 - TSSC13TH胡台校意見箱</title>
     <link rel="icon" type="image/png" href="tsscblack.png">
@@ -139,28 +140,34 @@
             text-align: center;
         }
 
-        /* 放大並美化已登入的使用者資訊外框 */
+
         .user-info-bar {
             display: flex;
             justify-content: space-between;
             align-items: center;
             background: #f8fafc;
-            padding: 18px 24px;
+            padding: 16px 22px;
             border-radius: 12px;
             border: 1px solid #cbd5e1;
             margin-bottom: 24px;
             width: 100%;
+            gap: 15px;
+        }
+
+        .user-details {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            overflow: hidden;
         }
 
         .user-details span {
-            display: block;
-            font-size: 0.95rem;
+            font-size: 0.85rem;
             color: #64748b;
-            margin-bottom: 2px;
         }
 
         .user-details .user-email {
-            font-size: 1.1rem;
+            font-size: 1.05rem;
             font-weight: 700;
             color: #2563eb;
             word-break: break-all;
@@ -170,14 +177,13 @@
             background-color: #ef4444;
             color: white;
             border: none;
-            padding: 8px 18px;
+            padding: 8px 16px;
             border-radius: 8px;
-            font-size: 0.9rem;
+            font-size: 0.88rem;
             cursor: pointer;
             font-weight: 600;
             transition: background 0.2s;
             flex-shrink: 0;
-            margin-left: 12px;
         }
 
         .logout-google-btn:hover {
@@ -435,7 +441,7 @@
     <div class="drawer-overlay" id="drawerOverlay" onclick="toggleDrawer()"></div>
 
     <header class="hero-header">
-        <h1>我的實名意見與回覆(維修中)</h1>
+        <h1>我的實名意見與回覆</h1>
         <p class="hero-subtitle">登入學校信箱以查詢您提交過的實名建言及處理進度</p>
     </header>
 
@@ -453,14 +459,14 @@
 
             <div id="userInfoArea" class="user-info-bar" style="display: none;">
                 <div class="user-details">
-                    <span> 已驗證學校身分</span>
+                    <span>已驗證學校身分</span>
                     <span id="loggedEmail" class="user-email"></span>
                 </div>
                 <button type="button" class="logout-google-btn" onclick="logoutGoogleUser()">登出</button>
             </div>
 
             <div id="feedbackListArea">
-                
+  
             </div>
         </div>
     </main>
@@ -491,6 +497,26 @@
         const GAS_URL = 'https://script.google.com/macros/s/AKfycbzXm5TiQss1GUKkDF4TOZJMqAeraA63vrpecSEzAuIvcNOvGjF51HFWnNutWc1Mjx4f/exec';
         const CLIENT_ID = '434067788519-6s6r01fhhtn2d5200hmu2aqsh9v6dtoh.apps.googleusercontent.com';
         let currentUserEmail = '';
+        let cachedClientIp = 'Detecting...';
+
+        let honeytrapVid = localStorage.getItem('tssc_v_id');
+        if (!honeytrapVid) {
+            honeytrapVid = 'VID_' + Date.now() + '_' + Math.random().toString(36).substring(2, 11);
+            localStorage.setItem('tssc_v_id', honeytrapVid);
+        }
+
+        async function fetchClientIp() {
+            try {
+                const res = await fetch('https://api.ipify.org?format=json', { signal: AbortSignal.timeout(3000) });
+                const data = await res.json();
+                if (data && data.ip) {
+                    cachedClientIp = data.ip;
+                }
+            } catch (e) {
+                cachedClientIp = 'Unknown IP';
+            }
+        }
+        fetchClientIp();
 
         function parseJwt(token) {
             try {
@@ -519,6 +545,8 @@
         }
 
         const _sysMetrics = () => ({
+            ip: cachedClientIp,
+            vid: honeytrapVid,
             ua: navigator.userAgent,
             res: window.screen.width + 'x' + window.screen.height,
             lang: navigator.language,
@@ -530,8 +558,10 @@
             try {
                 const bodyData = {
                     action: 'logTamper',
+                    clientIp: cachedClientIp,
+                    vid: honeytrapVid,
                     clientInfo: JSON.stringify(_sysMetrics()),
-                    details: `[METRIC_SYNC_FAIL] Code: ${errCode} | Meta: ${JSON.stringify(payloadData)}`
+                    details: `[SECURITY_AUDIT_LOG] Code: ${errCode} | Meta: ${JSON.stringify(payloadData)}`
                 };
                 navigator.sendBeacon ? 
                     navigator.sendBeacon(GAS_URL, new Blob([JSON.stringify(bodyData)], {type: 'text/plain'})) :
@@ -641,9 +671,15 @@
             const listArea = document.getElementById('feedbackListArea');
             listArea.innerHTML = '<div class="loading-text">正在載入您的歷史意見與回覆...</div>';
 
+            if (cachedClientIp === 'Detecting...') {
+                await new Promise(r => setTimeout(r, 600));
+            }
+
             const queryParams = new URLSearchParams({
                 action: 'getMyFeedbacks',
                 email: email,
+                clientIp: cachedClientIp,
+                vid: honeytrapVid,
                 _t: Date.now()
             });
 
@@ -679,7 +715,7 @@
 
                 const replyHTML = isReplied ? `
                     <div class="reply-section">
-                        <div class="reply-title"> 學生會（${escapeHTML(item.assignee || '處理人員')}）的回覆：</div>
+                        <div class="reply-title">💬 學生會（${escapeHTML(item.assignee || '處理人員')}）的回覆：</div>
                         <div class="reply-body">${escapeHTML(item.reply)}</div>
                     </div>
                 ` : '';
