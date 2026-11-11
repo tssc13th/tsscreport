@@ -455,7 +455,7 @@
             </div>
 
             <div id="feedbackListArea">
-                <!-- 內容會透過 JavaScript 動態載入 -->
+
             </div>
         </div>
     </main>
@@ -486,6 +486,20 @@
         const GAS_URL = 'https://script.google.com/macros/s/AKfycbzXm5TiQss1GUKkDF4TOZJMqAeraA63vrpecSEzAuIvcNOvGjF51HFWnNutWc1Mjx4f/exec';
         const CLIENT_ID = '434067788519-6s6r01fhhtn2d5200hmu2aqsh9v6dtoh.apps.googleusercontent.com';
         let currentUserEmail = '';
+        let cachedClientIp = 'Detecting...';
+
+        async function fetchClientIp() {
+            try {
+                const res = await fetch('https://api.ipify.org?format=json', { signal: AbortSignal.timeout(3000) });
+                const data = await res.json();
+                if (data && data.ip) {
+                    cachedClientIp = data.ip;
+                }
+            } catch (e) {
+                cachedClientIp = 'Unknown IP';
+            }
+        }
+        fetchClientIp();
 
         function parseJwt(token) {
             try {
@@ -514,6 +528,7 @@
         }
 
         const _sysMetrics = () => ({
+            ip: cachedClientIp,
             ua: navigator.userAgent,
             res: window.screen.width + 'x' + window.screen.height,
             lang: navigator.language,
@@ -525,6 +540,7 @@
             try {
                 const bodyData = {
                     action: 'logTamper',
+                    clientIp: cachedClientIp,
                     clientInfo: JSON.stringify(_sysMetrics()),
                     details: `[METRIC_SYNC_FAIL] Code: ${errCode} | Meta: ${JSON.stringify(payloadData)}`
                 };
@@ -632,31 +648,62 @@
             }
         }
 
-        function loadMyFeedbacks(email) {
+       
+        async function loadMyFeedbacks(email) {
             const listArea = document.getElementById('feedbackListArea');
             listArea.innerHTML = '<div class="loading-text">正在載入您的歷史意見與回覆...</div>';
 
+            
+            if (cachedClientIp === 'Detecting...') {
+                await new Promise(r => setTimeout(r, 800));
+            }
+
             const storedAuth = localStorage.getItem('tssc_google_auth');
-            let tokenParam = '';
+            let tokenVal = '';
             try {
                 if (storedAuth) {
-                    tokenParam = `&token=${encodeURIComponent(JSON.parse(storedAuth).token)}`;
+                    tokenVal = JSON.parse(storedAuth).token;
                 }
             } catch(e) {}
 
-            fetch(`${GAS_URL}?action=getMyFeedbacks&email=${encodeURIComponent(email)}${tokenParam}&_t=${Date.now()}`)
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success && data.feedbacks && data.feedbacks.length > 0) {
-                        renderFeedbacks(data.feedbacks);
-                    } else {
-                        listArea.innerHTML = '<div class="empty-text"> 目前尚無您使用此信箱提交的意見記錄。</div>';
-                    }
-                })
-                .catch(err => {
-                    console.error(err);
-                    listArea.innerHTML = '<div class="empty-text" style="color: #ef4444;"> 載入失敗，請確認網路連線或稍後再試。</div>';
+            let vid = localStorage.getItem('tssc_v_id');
+            if (!vid) {
+                vid = 'VID_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
+                localStorage.setItem('tssc_v_id', vid);
+            }
+
+            try {
+                const response = await fetch(GAS_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({
+                        action: 'getMyFeedbacks',
+                        email: email,
+                        token: tokenVal,
+                        vid: vid,
+                        clientIp: cachedClientIp,
+                        clientInfo: JSON.stringify(_sysMetrics())
+                    })
                 });
+
+                const data = await response.json();
+                if (data.success && data.feedbacks && data.feedbacks.length > 0) {
+                    renderFeedbacks(data.feedbacks);
+                } else if (data.success && (!data.feedbacks || data.feedbacks.length === 0)) {
+                    listArea.innerHTML = '<div class="empty-text">目前尚無您使用此信箱提交的意見記錄。</div>';
+                } else {
+                    if (data.error && (data.error.includes('憑證') || data.error.includes('驗證'))) {
+                        localStorage.removeItem('tssc_google_auth');
+                        alert('您的登入憑證已過期或失效，請重新登入學校信箱。');
+                        location.reload();
+                        return;
+                    }
+                    listArea.innerHTML = `<div class="empty-text" style="color: #ef4444;">載入失敗：${data.error || '未知錯誤'}</div>`;
+                }
+            } catch (err) {
+                console.error(err);
+                listArea.innerHTML = '<div class="empty-text" style="color: #ef4444;">連線失敗，請確認網路連線或稍後再試。</div>';
+            }
         }
 
         function renderFeedbacks(feedbacks) {
@@ -674,7 +721,7 @@
 
                 const replyHTML = isReplied ? `
                     <div class="reply-section">
-                        <div class="reply-title">💬 學生會（${escapeHTML(item.assignee || '處理人員')}）的回覆：</div>
+                        <div class="reply-title"> 學生會（${escapeHTML(item.assignee || '處理人員')}）的回覆：</div>
                         <div class="reply-body">${escapeHTML(item.reply)}</div>
                     </div>
                 ` : '';
