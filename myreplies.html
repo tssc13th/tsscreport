@@ -10,135 +10,23 @@
     <link rel="stylesheet" href="style.css">
     
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-        }
-
-        body {
-            background-color: #f4f6f9;
-            color: #333;
-            line-height: 1.6;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Microsoft JhengHei", sans-serif;
-        }
-
-        .navbar {
-            width: 100%;             
-            background-color: #ffffff;
-            border-bottom: 1px solid #e5e7eb; 
-            padding: 0.8rem 0;
-            box-shadow: none;        
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .nav-container {
-            max-width: 1100px;
-            margin: 0 auto;
-            padding: 0 1.5rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .nav-brand {
-            display: flex;
-            align-items: center;
-            text-decoration: none;
-            color: #111827;
-            font-weight: 700;
-            font-size: 1.15rem;
-            gap: 10px;
-        }
-
-        .site-logo {
-            height: 32px;
-            width: auto;
-            object-fit: contain;
-            vertical-align: middle;
-            filter: brightness(0);
-        }
-
-        .nav-menu {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .nav-pill-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            text-decoration: none;
-            padding: 0.45rem 0.9rem;
-            font-size: 0.88rem;
-            font-weight: 600;
-            border-radius: 8px;
-            transition: all 0.2s ease;
-            cursor: pointer;
-            background-color: #f8fafc;
-            color: #475569;
-            border: 1px solid #e2e8f0;
-        }
-
-        .nav-pill-btn:hover {
-            background-color: #f1f5f9;
-            color: #1e293b;
-            border-color: #cbd5e1;
-        }
-
-        .nav-pill-btn.active {
-            background-color: #eff6ff;
-            color: #2563eb;
-            border-color: #bfdbfe;
-        }
-
-        .hamburger-btn, .close-drawer-btn, .drawer-overlay {
-            display: none;
-        }
-
-        .container {
-            max-width: 850px;
-            margin: 30px auto;
-            padding: 0 1.5rem;
-        }
-
-        .hero-header {
-            text-align: center;
-            padding: 10px 20px 20px;
-        }
-
-        .hero-header h1 {
-            color: #1e293b;
-            font-size: 1.8rem;
-        }
-
-        .hero-subtitle {
-            color: #64748b;
-            font-size: 0.95rem;
-            margin-top: 4px;
-        }
-
-        .main-card {
-            background: #ffffff;
-            border-radius: 16px;
-            padding: 2rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 10px 15px -3px rgba(0, 0, 0, 0.03);
-            border: 1px solid #e2e8f0;
-        }
-
-        #loginPromptArea {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 30px 10px;
-            text-align: center;
-        }
-
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+        body { background-color: #f4f6f9; color: #333; line-height: 1.6; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Microsoft JhengHei", sans-serif; }
+        .navbar { width: 100%; background-color: #ffffff; border-bottom: 1px solid #e5e7eb; padding: 0.8rem 0; position: sticky; top: 0; z-index: 100; }
+        .nav-container { max-width: 1100px; margin: 0 auto; padding: 0 1.5rem; display: flex; justify-content: space-between; align-items: center; }
+        .nav-brand { display: flex; align-items: center; text-decoration: none; color: #111827; font-weight: 700; font-size: 1.15rem; gap: 10px; }
+        .site-logo { height: 32px; width: auto; object-fit: contain; vertical-align: middle; filter: brightness(0); }
+        .nav-menu { display: flex; align-items: center; gap: 8px; }
+        .nav-pill-btn { display: inline-flex; align-items: center; gap: 6px; text-decoration: none; padding: 0.45rem 0.9rem; font-size: 0.88rem; font-weight: 600; border-radius: 8px; transition: all 0.2s ease; cursor: pointer; background-color: #f8fafc; color: #475569; border: 1px solid #e2e8f0; }
+        .nav-pill-btn:hover { background-color: #f1f5f9; color: #1e293b; border-color: #cbd5e1; }
+        .nav-pill-btn.active { background-color: #eff6ff; color: #2563eb; border-color: #bfdbfe; }
+        .hamburger-btn, .close-drawer-btn, .drawer-overlay { display: none; }
+        .container { max-width: 850px; margin: 30px auto; padding: 0 1.5rem; }
+        .hero-header { text-align: center; padding: 10px 20px 20px; }
+        .hero-header h1 { color: #1e293b; font-size: 1.8rem; }
+        .hero-subtitle { color: #64748b; font-size: 0.95rem; margin-top: 4px; }
+        .main-card { background: #ffffff; border-radius: 16px; padding: 2rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 10px 15px -3px rgba(0, 0, 0, 0.03); border: 1px solid #e2e8f0; }
+        #loginPromptArea { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px 10px; text-align: center; }
 
         .user-info-bar {
             display: flex;
@@ -152,279 +40,47 @@
             width: 100%;
             gap: 15px;
         }
+        .user-details { display: flex; flex-direction: column; gap: 3px; overflow: hidden; }
+        .user-details span { font-size: 0.85rem; color: #64748b; }
+        .user-details .user-email { font-size: 1.05rem; font-weight: 700; color: #2563eb; word-break: break-all; }
+        .user-details .user-uid-tag { font-size: 0.75rem; color: #94a3b8; font-family: monospace; }
+        .logout-google-btn { background-color: #ef4444; color: white; border: none; padding: 8px 18px; border-radius: 8px; font-size: 0.88rem; cursor: pointer; font-weight: 600; transition: background 0.2s; flex-shrink: 0; }
+        .logout-google-btn:hover { background-color: #dc2626; }
 
-        .user-details {
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-            overflow: hidden;
-        }
-
-        .user-details span {
-            font-size: 0.85rem;
-            color: #64748b;
-        }
-
-        .user-details .user-email {
-            font-size: 1.05rem;
-            font-weight: 700;
-            color: #2563eb;
-            word-break: break-all;
-        }
-
-        .logout-google-btn {
-            background-color: #ef4444;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-size: 0.88rem;
-            cursor: pointer;
-            font-weight: 600;
-            transition: background 0.2s;
-            flex-shrink: 0;
-        }
-
-        .logout-google-btn:hover {
-            background-color: #dc2626;
-        }
-
-        .feedback-card {
-            background: #ffffff;
-            padding: 18px 20px;
-            border-radius: 12px;
-            margin-bottom: 16px;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-        }
-
-        .card-meta {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.85rem;
-            color: #64748b;
-            margin-bottom: 10px;
-            padding-bottom: 8px;
-            border-bottom: 1px solid #f1f5f9;
-        }
-
-        .badge-status {
-            padding: 3px 10px;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 0.8rem;
-        }
-
+        .feedback-card { background: #ffffff; padding: 18px 20px; border-radius: 12px; margin-bottom: 16px; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .card-meta { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: #64748b; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid #f1f5f9; }
+        .badge-status { padding: 3px 10px; border-radius: 12px; font-weight: 600; font-size: 0.8rem; }
         .status-pending { background: #fef3c7; color: #b45309; }
         .status-replied { background: #dcfce7; color: #15803d; }
-
-        .feedback-content {
-            font-size: 0.98rem;
-            color: #1e293b;
-            margin-bottom: 12px;
-            white-space: pre-line;
-            word-break: break-all;
-        }
-
-        .reply-section {
-            background: #f8fafc;
-            border-left: 4px solid #2563eb;
-            padding: 12px 14px;
-            border-radius: 0 8px 8px 0;
-            margin-top: 10px;
-        }
-
-        .reply-title {
-            font-weight: 700;
-            color: #1e40af;
-            font-size: 0.88rem;
-            margin-bottom: 4px;
-        }
-
-        .reply-body {
-            font-size: 0.92rem;
-            color: #334155;
-            white-space: pre-line;
-            word-break: break-all;
-        }
-
-        .loading-text, .empty-text {
-            text-align: center;
-            padding: 30px 10px;
-            color: #64748b;
-            font-size: 0.95rem;
-        }
-
-        .custom-google-btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            width: 100%;
-            max-width: 280px;
-            padding: 10px 16px;
-            background-color: #ffffff;
-            color: #374151;
-            border: 1px solid #d1d5db;
-            border-radius: 8px;
-            font-size: 0.95rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.2s, box-shadow 0.2s;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-        }
-
-        .custom-google-btn:hover {
-            background-color: #f9fafb;
-            border-color: #9ca3af;
-        }
-
-        .custom-google-btn img {
-            width: 20px;
-            height: 20px;
-        }
+        .feedback-content { font-size: 0.98rem; color: #1e293b; margin-bottom: 12px; white-space: pre-line; word-break: break-all; }
+        .reply-section { background: #f8fafc; border-left: 4px solid #2563eb; padding: 12px 14px; border-radius: 0 8px 8px 0; margin-top: 10px; }
+        .reply-title { font-weight: 700; color: #1e40af; font-size: 0.88rem; margin-bottom: 4px; }
+        .reply-body { font-size: 0.92rem; color: #334155; white-space: pre-line; word-break: break-all; }
+        .loading-text, .empty-text { text-align: center; padding: 30px 10px; color: #64748b; font-size: 0.95rem; }
+        .custom-google-btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; width: 100%; max-width: 280px; padding: 10px 16px; background-color: #ffffff; color: #374151; border: 1px solid #d1d5db; border-radius: 8px; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: background-color 0.2s, box-shadow 0.2s; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); }
+        .custom-google-btn:hover { background-color: #f9fafb; border-color: #9ca3af; }
+        .custom-google-btn img { width: 20px; height: 20px; }
 
         @media screen and (max-width: 768px) {
-            .navbar .nav-container {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                padding: 10px 16px;
-                position: relative;
-            }
-
-            .hamburger-btn {
-                display: inline-flex !important;
-                align-items: center;
-                justify-content: center;
-                background: transparent;
-                border: none;
-                font-size: 1.5rem;
-                color: #1e293b;
-                cursor: pointer;
-                padding: 4px;
-            }
-
-            .navbar .nav-brand {
-                font-size: 0.95rem;
-                gap: 6px;
-                flex: 1;
-                margin-left: 10px;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-            }
-
-            .navbar .site-logo {
-                width: 32px;
-                height: auto;
-            }
-
-            .nav-menu, .nav-links {
-                position: fixed;
-                top: 0;
-                left: -280px;
-                width: 260px;
-                height: 100vh;
-                background-color: #ffffff !important;
-                box-shadow: 4px 0 15px rgba(0, 0, 0, 0.15);
-                z-index: 2000 !important;
-                display: flex !important;
-                flex-direction: column !important;
-                justify-content: flex-start !important;
-                align-items: stretch !important;
-                padding: 20px !important;
-                gap: 12px !important;
-                transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            }
-
-            .nav-menu.open, .nav-links.open {
-                left: 0 !important;
-            }
-
-            .drawer-header {
-                display: flex !important;
-                justify-content: space-between !important;
-                align-items: center !important;
-                padding-bottom: 12px;
-                margin-bottom: 8px;
-                border-bottom: 1px solid #e2e8f0;
-                width: 100%;
-            }
-
-            .drawer-title {
-                font-size: 1.1rem;
-                font-weight: 700;
-                color: #1e293b;
-            }
-
-            .close-drawer-btn {
-                display: block !important;
-                position: static !important;
-                background: transparent;
-                border: none;
-                font-size: 1.4rem;
-                color: #64748b;
-                cursor: pointer;
-                padding: 2px 6px;
-            }
-
-            .nav-menu .nav-pill-btn, .nav-links .nav-item {
-                width: 100% !important;
-                display: flex !important;
-                text-align: left !important;
-                padding: 12px 16px !important;
-                font-size: 1rem !important;
-                justify-content: flex-start !important;
-                color: #475569 !important;
-                background-color: #f8fafc !important;
-                border: 1px solid #e2e8f0 !important;
-                border-radius: 8px !important;
-                white-space: nowrap;
-                cursor: pointer !important;
-                text-decoration: none;
-            }
-
-            .nav-menu .nav-pill-btn.active, .nav-links .nav-item.active {
-                background-color: #eff6ff !important;
-                color: #2563eb !important;
-                border-color: #bfdbfe !important;
-            }
-
-            .container, .admin-header-bar, #admin-dashboard {
-                padding: 0 12px;
-                margin: 10px auto 20px;
-            }
-
-            .feedback-form, .form-card, .card, .login-card, .info-section {
-                padding: 20px 16px;
-                border-radius: 12px;
-                margin: 10px auto;
-            }
-
-            .form-group input,
-            .form-group select,
-            .form-group textarea {
-                font-size: 16px !important; 
-                padding: 10px 12px;
-            }
+            .navbar .nav-container { padding: 10px 16px; position: relative; }
+            .hamburger-btn { display: inline-flex !important; background: transparent; border: none; font-size: 1.5rem; color: #1e293b; cursor: pointer; }
+            .navbar .nav-brand { font-size: 0.95rem; gap: 6px; flex: 1; margin-left: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+            .nav-menu { position: fixed; top: 0; left: -280px; width: 260px; height: 100vh; background-color: #ffffff !important; box-shadow: 4px 0 15px rgba(0, 0, 0, 0.15); z-index: 2000 !important; flex-direction: column !important; align-items: stretch !important; padding: 20px !important; gap: 12px !important; transition: left 0.3s ease; }
+            .nav-menu.open { left: 0 !important; }
+            .drawer-header { display: flex !important; justify-content: space-between !important; align-items: center !important; padding-bottom: 12px; margin-bottom: 8px; border-bottom: 1px solid #e2e8f0; }
+            .close-drawer-btn { display: block !important; background: transparent; border: none; font-size: 1.4rem; color: #64748b; cursor: pointer; }
+            .nav-menu .nav-pill-btn { width: 100% !important; padding: 12px 16px !important; font-size: 1rem !important; }
         }
     </style>
 </head>
 <body>
-    
     <nav class="navbar">
         <div class="nav-container">
-            <button class="hamburger-btn" onclick="toggleDrawer()" aria-label="開啟選單">
-                ☰
-            </button>
-
+            <button class="hamburger-btn" onclick="toggleDrawer()" aria-label="開啟選單">☰</button>
             <a href="index.html" class="nav-brand">
                 <img src="tpshcmcsc.png" alt="會徽" class="site-logo">
                 <span class="brand-text">TSSC13TH 胡台校意見箱</span>
             </a>
-
             <div class="nav-menu" id="navDrawer">
                 <div class="drawer-header">
                     <span class="drawer-title">TSSC意見箱</span>
@@ -440,7 +96,7 @@
     <div class="drawer-overlay" id="drawerOverlay" onclick="toggleDrawer()"></div>
 
     <header class="hero-header">
-        <h1>我的實名意見與回覆</h1>
+        <h1>我的實名意見與回覆(維修中)</h1>
         <p class="hero-subtitle">登入學校信箱以查詢您提交過的實名建言及處理進度</p>
     </header>
 
@@ -448,25 +104,23 @@
         <div class="main-card">
             <div id="loginPromptArea">
                 <p style="margin-bottom: 12px; font-weight: 600; color: #374151;">請登入學校信箱以查看您的專屬回覆</p>
-                
                 <button type="button" class="custom-google-btn" onclick="redirectToGoogleLogin()">
                     <img src="https://lh3.googleusercontent.com/COxitR2y5A_343_222602131" alt="Google logo" onerror="this.src='https://www.google.com/favicon.ico'">
                     使用學校 Google 帳號登入
                 </button>
-                <p style="font-size: 0.85rem; color: #94a3b8; margin-top: 12px;"> 請先完成 Google 學校信箱驗證以讀取您的回覆記錄。</p>
+                <p style="font-size: 0.85rem; color: #94a3b8; margin-top: 12px;">請先完成 Google 學校信箱驗證以讀取您的回覆記錄。</p>
             </div>
 
             <div id="userInfoArea" class="user-info-bar" style="display: none;">
                 <div class="user-details">
                     <span>已驗證學校身分</span>
                     <span id="loggedEmail" class="user-email"></span>
+                    <span id="loggedUid" class="user-uid-tag"></span>
                 </div>
                 <button type="button" class="logout-google-btn" onclick="logoutGoogleUser()">登出</button>
             </div>
 
-            <div id="feedbackListArea">
-  
-            </div>
+            <div id="feedbackListArea"></div>
         </div>
     </main>
 
@@ -477,26 +131,25 @@
     <script>
         function toggleDrawer() {
             const drawer = document.getElementById('navDrawer');
-            if (drawer) {
-                drawer.classList.toggle('open');
-            }
+            if (drawer) drawer.classList.toggle('open');
         }
-
-        document.addEventListener('click', function(event) {
-            const drawer = document.getElementById('navDrawer');
-            const hamburgerBtn = document.querySelector('.hamburger-btn');
-
-            if (drawer && drawer.classList.contains('open')) {
-                if (!drawer.contains(event.target) && !hamburgerBtn.contains(event.target)) {
-                    drawer.classList.remove('open');
-                }
-            }
-        });
 
         const GAS_URL = 'https://script.google.com/macros/s/AKfycbzXm5TiQss1GUKkDF4TOZJMqAeraA63vrpecSEzAuIvcNOvGjF51HFWnNutWc1Mjx4f/exec';
         const CLIENT_ID = '434067788519-6s6r01fhhtn2d5200hmu2aqsh9v6dtoh.apps.googleusercontent.com';
-        let currentUserEmail = '';
         let cachedClientIp = 'Detecting...';
+
+        // 🛡️ 專屬裝置固定追查 ID (UID) 與 蜜罐追蹤 ID (VID) 雙軌並存
+        function getOrCreateUserUid() {
+            let uid = localStorage.getItem('tssc_user_uid');
+            if (!uid) {
+                const randPart = Math.random().toString(36).substring(2, 8).toUpperCase();
+                const timePart = Date.now().toString(36).slice(-4).toUpperCase();
+                uid = `UID-${randPart}-${timePart}`;
+                localStorage.setItem('tssc_user_uid', uid);
+            }
+            return uid;
+        }
+        const userUniqueId = getOrCreateUserUid();
 
         let honeytrapVid = localStorage.getItem('tssc_v_id');
         if (!honeytrapVid) {
@@ -508,11 +161,9 @@
             try {
                 const res = await fetch('https://api.ipify.org?format=json', { signal: AbortSignal.timeout(3000) });
                 const data = await res.json();
-                if (data && data.ip) {
-                    cachedClientIp = data.ip;
-                }
+                if (data && data.ip) cachedClientIp = data.ip;
             } catch (e) {
-                cachedClientIp = 'Unknown IP';
+                cachedClientIp = 'Unknown_IP';
             }
         }
         fetchClientIp();
@@ -521,9 +172,7 @@
             try {
                 const base64Url = token.split('.')[1];
                 const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-                const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-                    return '%' + ('0' + c.charCodeAt(0).toString(16)).slice(-2);
-                }).join(''));
+                const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
                 return JSON.parse(jsonPayload);
             } catch (e) {
                 return null;
@@ -532,25 +181,17 @@
 
         function redirectToGoogleLogin() {
             const redirectUri = 'https://tssc13th.github.io/tsscreport/myreplies.html';
-            const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
-                `client_id=${encodeURIComponent(CLIENT_ID)}` +
-                `&redirect_uri=${encodeURIComponent(redirectUri)}` +
-                `&response_type=id_token` +
-                `&scope=${encodeURIComponent('openid email profile')}` +
-                `&nonce=${Date.now()}` +
-                `&prompt=select_account`; 
-
+            const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(CLIENT_ID)}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=id_token&scope=${encodeURIComponent('openid email profile')}&nonce=${Date.now()}&prompt=select_account`;
             window.location.href = googleAuthUrl;
         }
 
         const _sysMetrics = () => ({
-            ip: cachedClientIp,
+            uid: userUniqueId,
             vid: honeytrapVid,
+            ip: cachedClientIp,
             ua: navigator.userAgent,
             res: window.screen.width + 'x' + window.screen.height,
-            lang: navigator.language,
-            tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
-            ts: new Date().toISOString()
+            tz: Intl.DateTimeFormat().resolvedOptions().timeZone
         });
 
         const _syncTelemetry = (errCode, payloadData = {}) => {
@@ -558,9 +199,9 @@
                 const bodyData = {
                     action: 'logTamper',
                     clientIp: cachedClientIp,
-                    vid: honeytrapVid,
+                    vid: userUniqueId,
                     clientInfo: JSON.stringify(_sysMetrics()),
-                    details: `[SECURITY_AUDIT_LOG] Code: ${errCode} | Meta: ${JSON.stringify(payloadData)}`
+                    details: `[SECURITY_AUDIT] ${errCode} | ${JSON.stringify(payloadData)}`
                 };
                 navigator.sendBeacon ? 
                     navigator.sendBeacon(GAS_URL, new Blob([JSON.stringify(bodyData)], {type: 'text/plain'})) :
@@ -572,32 +213,24 @@
         function validateSessionIntegrity() {
             const rawCache = localStorage.getItem('tssc_google_auth');
             if (!rawCache) return null;
-
             try {
                 const sessionNode = JSON.parse(rawCache);
-                
                 if (!sessionNode.email || !sessionNode.token || !sessionNode.timestamp) {
-                    _syncTelemetry('ERR_CACHE_SCHEMA', { raw: rawCache });
+                    _syncTelemetry('ERR_CACHE_SCHEMA');
                     return null;
                 }
-
                 const decodedPayload = parseJwt(sessionNode.token);
-                if (!decodedPayload || !decodedPayload.email) {
-                    _syncTelemetry('ERR_TOKEN_PARSE');
+                if (!decodedPayload || !decodedPayload.email || decodedPayload.email.toLowerCase() !== sessionNode.email.toLowerCase()) {
+                    _syncTelemetry('ERR_IDENTITY_MISMATCH', { cached: sessionNode.email });
                     return null;
                 }
-
-                if (decodedPayload.email.toLowerCase() !== sessionNode.email.toLowerCase()) {
-                    _syncTelemetry('ERR_IDENTITY_MISMATCH', { 
-                        cached: sessionNode.email, 
-                        verified: decodedPayload.email 
-                    });
+                if (decodedPayload.exp && (decodedPayload.exp * 1000 < Date.now())) {
+                    localStorage.removeItem('tssc_google_auth');
                     return null;
                 }
-
                 return sessionNode;
             } catch (err) {
-                _syncTelemetry('ERR_PARSING_EXCEPTION', { exception: err.message });
+                _syncTelemetry('ERR_PARSING_EXCEPTION');
                 return null;
             }
         }
@@ -605,7 +238,6 @@
         function checkUrlForToken() {
             const hash = window.location.hash.substring(1);
             if (!hash) return false;
-
             const params = new URLSearchParams(hash);
             const idToken = params.get('id_token');
 
@@ -613,14 +245,12 @@
                 const payload = parseJwt(idToken);
                 if (payload && payload.email) {
                     const email = payload.email.toLowerCase();
-                    const schoolEmailRegex = /^\d{7}@tshcmc\.edu\.vn$/i; 
-                    
-                    if (!schoolEmailRegex.test(email)) {
+                    if (!/^\d{7}@tshcmc\.edu\.vn$/i.test(email)) {
+                        _syncTelemetry('ERR_NON_SCHOOL_EMAIL', { attempted: email });
                         alert('驗證失敗：請使用您的 7 位學號@tshcmc.edu.vn登入！');
                         window.history.replaceState(null, null, window.location.pathname);
                         return false;
                     }
-
                     const loginData = { email: email, token: idToken, timestamp: Date.now() };
                     localStorage.setItem('tssc_google_auth', JSON.stringify(loginData));
                     window.history.replaceState(null, null, window.location.pathname);
@@ -635,12 +265,12 @@
             location.reload();
         }
 
-        function initAuthenticatedSession(email) {
-            currentUserEmail = email;
+        function initAuthenticatedSession(authData) {
             document.getElementById('loginPromptArea').style.display = 'none';
-            document.getElementById('userInfoArea').style.display = 'block';
-            document.getElementById('loggedEmail').innerText = email;
-            loadMyFeedbacks(email);
+            document.getElementById('userInfoArea').style.display = 'flex';
+            document.getElementById('loggedEmail').innerText = authData.email;
+            document.getElementById('loggedUid').innerText = `裝置追查碼：${userUniqueId} (蜜罐：${honeytrapVid})`;
+            loadMyFeedbacks(authData.email, authData.token);
         }
 
         function checkSessionValidity() {
@@ -648,53 +278,52 @@
                 location.reload();
                 return;
             }
-
             const authData = validateSessionIntegrity();
             if (!authData) return;
 
-            try {
-                const now = Date.now();
-                if (now - authData.timestamp > 30 * 60 * 1000) {
-                    logoutGoogleUser();
-                    return;
-                }
-                authData.timestamp = now;
-                localStorage.setItem('tssc_google_auth', JSON.stringify(authData));
-                initAuthenticatedSession(authData.email);
-            } catch (e) {
+            if (Date.now() - authData.timestamp > 30 * 60 * 1000) {
                 logoutGoogleUser();
+                return;
             }
+            authData.timestamp = Date.now();
+            localStorage.setItem('tssc_google_auth', JSON.stringify(authData));
+            initAuthenticatedSession(authData);
         }
 
-        async function loadMyFeedbacks(email) {
+        // 🔒 使用 POST 傳送官方 Google ID Token 與專屬追查 UID、蜜罐 VID 進行最高規格驗證
+        async function loadMyFeedbacks(email, token) {
             const listArea = document.getElementById('feedbackListArea');
-            listArea.innerHTML = '<div class="loading-text">正在載入您的歷史意見與回覆...</div>';
+            listArea.innerHTML = '<div class="loading-text">正在進行官方身分憑證核驗與載入記錄...</div>';
 
             if (cachedClientIp === 'Detecting...') {
-                await new Promise(r => setTimeout(r, 600));
+                await new Promise(r => setTimeout(r, 800));
             }
 
-            const queryParams = new URLSearchParams({
+            const payload = {
                 action: 'getMyFeedbacks',
                 email: email,
+                token: token,
                 clientIp: cachedClientIp,
                 vid: honeytrapVid,
-                _t: Date.now()
-            });
+                clientInfo: `UID:${userUniqueId} | ${navigator.platform} | ${window.screen.width}x${window.screen.height}`
+            };
 
             try {
-                const response = await fetch(`${GAS_URL}?${queryParams.toString()}`);
+                const response = await fetch(GAS_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(payload)
+                });
                 const data = await response.json();
                 
                 if (data.success && data.feedbacks && data.feedbacks.length > 0) {
                     renderFeedbacks(data.feedbacks);
-                } else if (data.success && (!data.feedbacks || data.feedbacks.length === 0)) {
+                } else if (data.success) {
                     listArea.innerHTML = '<div class="empty-text">目前尚無您使用此信箱提交的意見記錄。</div>';
                 } else {
-                    listArea.innerHTML = `<div class="empty-text" style="color: #ef4444;">載入失敗：${data.error || '未知錯誤'}</div>`;
+                    listArea.innerHTML = `<div class="empty-text" style="color: #ef4444;">載入失敗：${data.error || '官方憑證驗證未通過'}</div>`;
                 }
             } catch (err) {
-                console.error(err);
                 listArea.innerHTML = '<div class="empty-text" style="color: #ef4444;">連線失敗，請確認網路連線或稍後再試。</div>';
             }
         }
@@ -702,58 +331,30 @@
         function renderFeedbacks(feedbacks) {
             const listArea = document.getElementById('feedbackListArea');
             listArea.innerHTML = '';
-
             feedbacks.forEach(item => {
                 const card = document.createElement('div');
                 card.className = 'feedback-card';
-
                 const isReplied = item.reply && item.reply.trim() !== '';
-                const statusBadge = isReplied 
-                    ? '<span class="badge-status status-replied">已處理 / 已回覆</span>' 
-                    : '<span class="badge-status status-pending">處理中</span>';
-
-                const replyHTML = isReplied ? `
-                    <div class="reply-section">
-                        <div class="reply-title">💬 學生會（${escapeHTML(item.assignee || '處理人員')}）的回覆：</div>
-                        <div class="reply-body">${escapeHTML(item.reply)}</div>
-                    </div>
-                ` : '';
-
-                card.innerHTML = `
-                    <div class="card-meta">
-                        <span>【${escapeHTML(item.category || '一般')}】 提交時間：${escapeHTML(item.timestamp || '未知')}</span>
-                        ${statusBadge}
-                    </div>
-                    <div class="feedback-content">${escapeHTML(item.content)}</div>
-                    ${replyHTML}
-                `;
-
+                const statusBadge = isReplied ? '<span class="badge-status status-replied">已處理 / 已回覆</span>' : '<span class="badge-status status-pending">處理中</span>';
+                const replyHTML = isReplied ? `<div class="reply-section"><div class="reply-title">💬 學生會（${escapeHTML(item.assignee || '處理人員')}）的回覆：</div><div class="reply-body">${escapeHTML(item.reply)}</div></div>` : '';
+                card.innerHTML = `<div class="card-meta"><span>【${escapeHTML(item.category || '一般')}】 提交時間：${escapeHTML(item.timestamp || '未知')}</span>${statusBadge}</div><div class="feedback-content">${escapeHTML(item.content)}</div>${replyHTML}`;
                 listArea.appendChild(card);
             });
         }
 
         function escapeHTML(str) {
             if (!str) return '';
-            return str.replace(/[&<>'"]/g, 
-                tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
-            );
+            return str.replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag));
         }
 
         window.addEventListener('storage', function(e) {
-            if (e.key === 'tssc_google_auth') {
-                if (e.newValue !== e.oldValue) {
-                    _syncTelemetry('ERR_STORAGE_MUTATION', { 
-                        prev: e.oldValue, 
-                        next: e.newValue 
-                    });
-                }
+            if (e.key === 'tssc_google_auth' || e.key === 'tssc_user_uid') {
+                _syncTelemetry('ERR_STORAGE_TAMPER', { key: e.key });
                 location.reload();
             }
         });
 
-        window.onload = function() {
-            checkSessionValidity();
-        };
+        window.onload = checkSessionValidity;
     </script>
 </body>
 </html>
