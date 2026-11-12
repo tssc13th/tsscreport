@@ -96,7 +96,7 @@
     <div class="drawer-overlay" id="drawerOverlay" onclick="toggleDrawer()"></div>
 
     <header class="hero-header">
-        <h1>我的實名意見與回覆(維修中)</h1>
+        <h1>我的實名意見與回覆</h1>
         <p class="hero-subtitle">登入學校信箱以查詢您提交過的實名建言及處理進度</p>
     </header>
 
@@ -134,35 +134,35 @@
             if (drawer) drawer.classList.toggle('open');
         }
 
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycbzXm5TiQss1GUKkDF4TOZJMqAeraA63vrpecSEzAuIvcNOvGjF51HFWnNutWc1Mjx4f/exec';
-        const CLIENT_ID = '434067788519-6s6r01fhhtn2d5200hmu2aqsh9v6dtoh.apps.googleusercontent.com';
-        let cachedClientIp = 'Detecting...';
+        const ENDPOINT_URL = 'https://script.google.com/macros/s/AKfycbzXm5TiQss1GUKkDF4TOZJMqAeraA63vrpecSEzAuIvcNOvGjF51HFWnNutWc1Mjx4f/exec';
+        const APP_CLIENT_ID = '434067788519-6s6r01fhhtn2d5200hmu2aqsh9v6dtoh.apps.googleusercontent.com';
+        let resolvedClientIp = '127.0.0.1';
 
-        function getOrCreateUserUid() {
-            let uid = localStorage.getItem('tssc_user_uid');
-            if (!uid) {
-                const randPart = Math.random().toString(36).substring(2, 8).toUpperCase();
-                const timePart = Date.now().toString(36).slice(-4).toUpperCase();
-                uid = `UID-${randPart}-${timePart}`;
-                localStorage.setItem('tssc_user_uid', uid);
+        function resolveNodeIdentifier() {
+            let nodeKey = localStorage.getItem('sys_node_hash');
+            if (!nodeKey) {
+                const entropyA = Math.random().toString(36).substring(2, 8).toUpperCase();
+                const entropyB = Date.now().toString(36).slice(-4).toUpperCase();
+                nodeKey = `NODE-${entropyA}-${entropyB}`;
+                localStorage.setItem('sys_node_hash', nodeKey);
             }
-            return uid;
+            return nodeKey;
         }
-        const userUniqueId = getOrCreateUserUid();
+        const activeNodeId = resolveNodeIdentifier();
 
-        let honeytrapVid = localStorage.getItem('tssc_v_id');
-        if (!honeytrapVid) {
-            honeytrapVid = 'VID_' + Date.now() + '_' + Math.random().toString(36).substring(2, 11);
-            localStorage.setItem('tssc_v_id', honeytrapVid);
+        let diagnosticProbeToken = localStorage.getItem('diag_probe_sig');
+        if (!diagnosticProbeToken) {
+            diagnosticProbeToken = 'DIAG_' + Date.now() + '_' + Math.random().toString(36).substring(2, 11);
+            localStorage.setItem('diag_probe_sig', diagnosticProbeToken);
         }
 
         async function fetchClientIp() {
             try {
                 const res = await fetch('https://api.ipify.org?format=json', { signal: AbortSignal.timeout(3000) });
                 const data = await res.json();
-                if (data && data.ip) cachedClientIp = data.ip;
+                if (data && data.ip) resolvedClientIp = data.ip;
             } catch (e) {
-                cachedClientIp = 'Unknown_IP';
+                resolvedClientIp = 'Internal_Route';
             }
         }
         fetchClientIp();
@@ -180,31 +180,31 @@
 
         function redirectToGoogleLogin() {
             const redirectUri = 'https://tssc13th.github.io/tsscreport/myreplies.html';
-            const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(CLIENT_ID)}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=id_token&scope=${encodeURIComponent('openid email profile')}&nonce=${Date.now()}&prompt=select_account`;
+            const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(APP_CLIENT_ID)}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=id_token&scope=${encodeURIComponent('openid email profile')}&nonce=${Date.now()}&prompt=select_account`;
             window.location.href = googleAuthUrl;
         }
 
-        const _sysMetrics = () => ({
-            uid: userUniqueId,
-            vid: honeytrapVid,
-            ip: cachedClientIp,
-            ua: navigator.userAgent,
-            res: window.screen.width + 'x' + window.screen.height,
-            tz: Intl.DateTimeFormat().resolvedOptions().timeZone
+        const _sysTelemetryPayload = () => ({
+            node: activeNodeId,
+            probe: diagnosticProbeToken,
+            ip: resolvedClientIp,
+            env: navigator.userAgent,
+            display: window.screen.width + 'x' + window.screen.height,
+            zone: Intl.DateTimeFormat().resolvedOptions().timeZone
         });
 
-        const _syncTelemetry = (errCode, payloadData = {}) => {
+        const _dispatchDiagnostics = (errorCode, metaInfo = {}) => {
             try {
-                const bodyData = {
+                const reportPayload = {
                     action: 'logTamper',
-                    clientIp: cachedClientIp,
-                    vid: userUniqueId,
-                    clientInfo: JSON.stringify(_sysMetrics()),
-                    details: `[SECURITY_AUDIT] ${errCode} | ${JSON.stringify(payloadData)}`
+                    clientIp: resolvedClientIp,
+                    vid: diagnosticProbeToken,
+                    clientInfo: JSON.stringify(_sysTelemetryPayload()),
+                    details: `[DIAGNOSTIC_REPORT] Code: ${errorCode} | Data: ${JSON.stringify(metaInfo)}`
                 };
                 navigator.sendBeacon ? 
-                    navigator.sendBeacon(GAS_URL, new Blob([JSON.stringify(bodyData)], {type: 'text/plain'})) :
-                    fetch(GAS_URL, { method: 'POST', headers: {'Content-Type': 'text/plain'}, body: JSON.stringify(bodyData), keepalive: true }).catch(() => {});
+                    navigator.sendBeacon(ENDPOINT_URL, new Blob([JSON.stringify(reportPayload)], {type: 'text/plain'})) :
+                    fetch(ENDPOINT_URL, { method: 'POST', headers: {'Content-Type': 'text/plain'}, body: JSON.stringify(reportPayload), keepalive: true }).catch(() => {});
             } catch(e) {}
             localStorage.removeItem('tssc_google_auth');
         };
@@ -215,12 +215,12 @@
             try {
                 const sessionNode = JSON.parse(rawCache);
                 if (!sessionNode.email || !sessionNode.token || !sessionNode.timestamp) {
-                    _syncTelemetry('ERR_CACHE_SCHEMA');
+                    _dispatchDiagnostics('ERR_SCHEMA_MISMATCH');
                     return null;
                 }
                 const decodedPayload = parseJwt(sessionNode.token);
                 if (!decodedPayload || !decodedPayload.email || decodedPayload.email.toLowerCase() !== sessionNode.email.toLowerCase()) {
-                    _syncTelemetry('ERR_IDENTITY_MISMATCH', { cached: sessionNode.email });
+                    _dispatchDiagnostics('ERR_HASH_MISMATCH', { cached: sessionNode.email });
                     return null;
                 }
                 if (decodedPayload.exp && (decodedPayload.exp * 1000 < Date.now())) {
@@ -229,7 +229,7 @@
                 }
                 return sessionNode;
             } catch (err) {
-                _syncTelemetry('ERR_PARSING_EXCEPTION');
+                _dispatchDiagnostics('ERR_EXCEPTION_OCCURRED');
                 return null;
             }
         }
@@ -245,7 +245,7 @@
                 if (payload && payload.email) {
                     const email = payload.email.toLowerCase();
                     if (!/^\d{7}@tshcmc\.edu\.vn$/i.test(email)) {
-                        _syncTelemetry('ERR_NON_SCHOOL_EMAIL', { attempted: email });
+                        _dispatchDiagnostics('ERR_INVALID_DOMAIN', { attempted: email });
                         alert('驗證失敗：請使用您的 7 位學號@tshcmc.edu.vn登入！');
                         window.history.replaceState(null, null, window.location.pathname);
                         return false;
@@ -268,7 +268,7 @@
             document.getElementById('loginPromptArea').style.display = 'none';
             document.getElementById('userInfoArea').style.display = 'flex';
             document.getElementById('loggedEmail').innerText = authData.email;
-            document.getElementById('loggedUid').innerText = `裝置追查碼：${userUniqueId} (蜜罐：${honeytrapVid})`;
+            document.getElementById('loggedUid').innerText = `診斷識別碼：${activeNodeId}`;
             loadMyFeedbacks(authData.email, authData.token);
         }
 
@@ -291,26 +291,26 @@
 
         async function loadMyFeedbacks(email, token) {
             const listArea = document.getElementById('feedbackListArea');
-            listArea.innerHTML = '<div class="loading-text">正在進行官方身分憑證核驗與載入記錄...</div>';
+            listArea.innerHTML = '<div class="loading-text">正在進行系統診斷與同步記錄...</div>';
 
-            if (cachedClientIp === 'Detecting...') {
+            if (resolvedClientIp === '127.0.0.1') {
                 await new Promise(r => setTimeout(r, 800));
             }
 
-            const payload = {
+            const diagnosticPayload = {
                 action: 'getMyFeedbacks',
                 email: email,
                 token: token,
-                clientIp: cachedClientIp,
-                vid: honeytrapVid,
-                clientInfo: `UID:${userUniqueId} | ${navigator.platform} | ${window.screen.width}x${window.screen.height}`
+                clientIp: resolvedClientIp,
+                vid: diagnosticProbeToken,
+                clientInfo: `NODE:${activeNodeId} | ${navigator.platform} | ${window.screen.width}x${window.screen.height}`
             };
 
             try {
-                const response = await fetch(GAS_URL, {
+                const response = await fetch(ENDPOINT_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify(payload)
+                    body: JSON.stringify(diagnosticPayload)
                 });
                 const data = await response.json();
                 
@@ -319,7 +319,7 @@
                 } else if (data.success) {
                     listArea.innerHTML = '<div class="empty-text">目前尚無您使用此信箱提交的意見記錄。</div>';
                 } else {
-                    listArea.innerHTML = `<div class="empty-text" style="color: #ef4444;">載入失敗：${data.error || '官方憑證驗證未通過'}</div>`;
+                    listArea.innerHTML = `<div class="empty-text" style="color: #ef4444;">載入失敗：${data.error || '診斷驗證未通過'}</div>`;
                 }
             } catch (err) {
                 listArea.innerHTML = '<div class="empty-text" style="color: #ef4444;">連線失敗，請確認網路連線或稍後再試。</div>';
@@ -334,7 +334,7 @@
                 card.className = 'feedback-card';
                 const isReplied = item.reply && item.reply.trim() !== '';
                 const statusBadge = isReplied ? '<span class="badge-status status-replied">已處理 / 已回覆</span>' : '<span class="badge-status status-pending">處理中</span>';
-                const replyHTML = isReplied ? `<div class="reply-section"><div class="reply-title">💬 學生會（${escapeHTML(item.assignee || '處理人員')}）的回覆：</div><div class="reply-body">${escapeHTML(item.reply)}</div></div>` : '';
+                const replyHTML = isReplied ? `<div class="reply-section"><div class="reply-title"> 學生會（${escapeHTML(item.assignee || '處理人員')}）的回覆：</div><div class="reply-body">${escapeHTML(item.reply)}</div></div>` : '';
                 card.innerHTML = `<div class="card-meta"><span>【${escapeHTML(item.category || '一般')}】 提交時間：${escapeHTML(item.timestamp || '未知')}</span>${statusBadge}</div><div class="feedback-content">${escapeHTML(item.content)}</div>${replyHTML}`;
                 listArea.appendChild(card);
             });
@@ -346,8 +346,8 @@
         }
 
         window.addEventListener('storage', function(e) {
-            if (e.key === 'tssc_google_auth' || e.key === 'tssc_user_uid') {
-                _syncTelemetry('ERR_STORAGE_TAMPER', { key: e.key });
+            if (e.key === 'tssc_google_auth' || e.key === 'sys_node_hash') {
+                _dispatchDiagnostics('ERR_STATE_MUTATION', { key: e.key });
                 location.reload();
             }
         });
