@@ -138,7 +138,6 @@
         const CLIENT_ID = '434067788519-6s6r01fhhtn2d5200hmu2aqsh9v6dtoh.apps.googleusercontent.com';
         let cachedClientIp = 'Detecting...';
 
-        // 🛡️ 專屬裝置固定追查 ID (UID) 與 蜜罐追蹤 ID (VID) 雙軌並存
         function getOrCreateUserUid() {
             let uid = localStorage.getItem('tssc_user_uid');
             if (!uid) {
@@ -290,7 +289,6 @@
             initAuthenticatedSession(authData);
         }
 
-        // 🔒 使用 POST 傳送官方 Google ID Token 與專屬追查 UID、蜜罐 VID 進行最高規格驗證
         async function loadMyFeedbacks(email, token) {
             const listArea = document.getElementById('feedbackListArea');
             listArea.innerHTML = '<div class="loading-text">正在進行官方身分憑證核驗與載入記錄...</div>';
