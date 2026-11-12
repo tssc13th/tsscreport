@@ -268,7 +268,7 @@
             document.getElementById('loginPromptArea').style.display = 'none';
             document.getElementById('userInfoArea').style.display = 'flex';
             document.getElementById('loggedEmail').innerText = authData.email;
-            document.getElementById('loggedUid').innerText = `診斷識別碼：${activeNodeId}`;
+            
             loadMyFeedbacks(authData.email, authData.token);
         }
 
