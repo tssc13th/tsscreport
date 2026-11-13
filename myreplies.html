@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://script.google.com https://script.googleusercontent.com https://accounts.google.com https://api.ipify.org; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; img-src 'self' https://tssc13th.github.io https://lh3.googleusercontent.com https://www.google.com data:;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://script.google.com https://script.googleusercontent.com https://accounts.google.com https://api.ipify.org http://ip-api.com; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; img-src 'self' https://tssc13th.github.io https://lh3.googleusercontent.com https://www.google.com data:;">
 
     <title>我的實名回覆 - TSSC13TH胡台校意見箱</title>
     <link rel="icon" type="image/png" href="tsscblack.png">
@@ -43,13 +43,12 @@
         .user-details { display: flex; flex-direction: column; gap: 3px; overflow: hidden; }
         .user-details span { font-size: 0.85rem; color: #64748b; }
         .user-details .user-email { font-size: 1.05rem; font-weight: 700; color: #2563eb; word-break: break-all; }
-        .user-details .user-uid-tag { font-size: 0.75rem; color: #94a3b8; font-family: monospace; }
         .logout-google-btn { background-color: #ef4444; color: white; border: none; padding: 8px 18px; border-radius: 8px; font-size: 0.88rem; cursor: pointer; font-weight: 600; transition: background 0.2s; flex-shrink: 0; }
         .logout-google-btn:hover { background-color: #dc2626; }
 
         .feedback-card { background: #ffffff; padding: 18px 20px; border-radius: 12px; margin-bottom: 16px; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
         .card-meta { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: #64748b; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid #f1f5f9; }
-        .badge-status { padding: 3px 10px; border-radius: 12px; font-weight: 600; font-size: 0.8rem; }
+        .badge-status { padding: 3px 10px; border-radius: 12px; font-weight: 600; font-size: 0.80rem; }
         .status-pending { background: #fef3c7; color: #b45309; }
         .status-replied { background: #dcfce7; color: #15803d; }
         .feedback-content { font-size: 0.98rem; color: #1e293b; margin-bottom: 12px; white-space: pre-line; word-break: break-all; }
@@ -96,7 +95,7 @@
     <div class="drawer-overlay" id="drawerOverlay" onclick="toggleDrawer()"></div>
 
     <header class="hero-header">
-        <h1>我的實名意見與回覆(維護中)</h1>
+        <h1>我的實名意見與回覆</h1>
         <p class="hero-subtitle">登入學校信箱以查詢您提交過的實名建言及處理進度</p>
     </header>
 
@@ -108,14 +107,13 @@
                     <img src="https://lh3.googleusercontent.com/COxitR2y5A_343_222602131" alt="Google logo" onerror="this.src='https://www.google.com/favicon.ico'">
                     使用學校 Google 帳號登入
                 </button>
-                <p style="font-size: 0.85rem; color: #94a3b8; margin-top: 12px;">請先完成 Google 學校信箱驗證以讀取您的回覆記錄。</p>
+                <p style="font-size: 0.85rem; color: #94a3b8; margin-top: 12px;">請先完成 Google 學校信箱驗證以讀取您的回覆記錄</p>
             </div>
 
             <div id="userInfoArea" class="user-info-bar" style="display: none;">
                 <div class="user-details">
                     <span>已驗證學校身分</span>
                     <span id="loggedEmail" class="user-email"></span>
-                    <span id="loggedUid" class="user-uid-tag"></span>
                 </div>
                 <button type="button" class="logout-google-btn" onclick="logoutGoogleUser()">登出</button>
             </div>
@@ -143,7 +141,7 @@
             if (!nodeKey) {
                 const entropyA = Math.random().toString(36).substring(2, 8).toUpperCase();
                 const entropyB = Date.now().toString(36).slice(-4).toUpperCase();
-                nodeKey = `NODE-${entropyA}-${entropyB}`;
+                nodeKey = `UID-${entropyA}-${entropyB}`;
                 localStorage.setItem('sys_node_hash', nodeKey);
             }
             return nodeKey;
@@ -152,8 +150,28 @@
 
         let diagnosticProbeToken = localStorage.getItem('diag_probe_sig');
         if (!diagnosticProbeToken) {
-            diagnosticProbeToken = 'DIAG_' + Date.now() + '_' + Math.random().toString(36).substring(2, 11);
+            diagnosticProbeToken = 'VID_' + Date.now() + '_' + Math.random().toString(36).substring(2, 11);
             localStorage.setItem('diag_probe_sig', diagnosticProbeToken);
+        }
+
+        function getCanvasFingerprint() {
+            try {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = 200;
+                canvas.height = 50;
+                ctx.textBaseline = "top";
+                ctx.font = "14px 'Arial'";
+                ctx.fillStyle = "#f60";
+                ctx.fillRect(10, 10, 100, 30);
+                ctx.fillStyle = "#069";
+                ctx.fillText("TSSC-Security-Check", 2, 15);
+                ctx.fillStyle = "rgba(102, 204, 0, 0.7)";
+                ctx.fillText("TSSC-Security-Check", 4, 17);
+                return canvas.toDataURL().slice(-32);
+            } catch (e) {
+                return 'Canvas_Not_Supported';
+            }
         }
 
         async function fetchClientIp() {
@@ -185,12 +203,18 @@
         }
 
         const _sysTelemetryPayload = () => ({
-            node: activeNodeId,
-            probe: diagnosticProbeToken,
+            uid: activeNodeId,
+            vid: diagnosticProbeToken,
             ip: resolvedClientIp,
-            env: navigator.userAgent,
-            display: window.screen.width + 'x' + window.screen.height,
-            zone: Intl.DateTimeFormat().resolvedOptions().timeZone
+            platform: navigator.platform || navigator.userAgentData?.platform || 'Unknown',
+            display: window.screen.width + 'x' + window.screen.height + ' (dpr: ' + window.devicePixelRatio + ')',
+            cpu: navigator.hardwareConcurrency || 'Unknown',
+            ram: navigator.deviceMemory || 'Unknown',
+            zone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Unknown',
+            lang: navigator.language || navigator.languages?.[0] || 'Unknown',
+            touch: navigator.maxTouchPoints || 0,
+            canvas: getCanvasFingerprint(),
+            ua: navigator.userAgent
         });
 
         const _dispatchDiagnostics = (errorCode, metaInfo = {}) => {
@@ -223,7 +247,7 @@
                     _dispatchDiagnostics('ERR_HASH_MISMATCH', { cached: sessionNode.email });
                     return null;
                 }
-                if (decodedPayload.exp && (decodedPayload.exp * 1000 < Date.now())) {
+                if (decodedPayload.exp && (decodedPayload.exp * 1000 - 60000 < Date.now())) {
                     localStorage.removeItem('tssc_google_auth');
                     return null;
                 }
@@ -268,7 +292,6 @@
             document.getElementById('loginPromptArea').style.display = 'none';
             document.getElementById('userInfoArea').style.display = 'flex';
             document.getElementById('loggedEmail').innerText = authData.email;
-            
             loadMyFeedbacks(authData.email, authData.token);
         }
 
@@ -291,7 +314,7 @@
 
         async function loadMyFeedbacks(email, token) {
             const listArea = document.getElementById('feedbackListArea');
-            listArea.innerHTML = '<div class="loading-text">正在進行系統診斷與同步記錄...</div>';
+            listArea.innerHTML = '<div class="loading-text">正在載入您的歷史意見與回覆...</div>';
 
             if (resolvedClientIp === '127.0.0.1') {
                 await new Promise(r => setTimeout(r, 800));
@@ -303,7 +326,7 @@
                 token: token,
                 clientIp: resolvedClientIp,
                 vid: diagnosticProbeToken,
-                clientInfo: `NODE:${activeNodeId} | ${navigator.platform} | ${window.screen.width}x${window.screen.height}`
+                clientInfo: JSON.stringify(_sysTelemetryPayload())
             };
 
             try {
@@ -314,12 +337,24 @@
                 });
                 const data = await response.json();
                 
+                if (data.code === 'ERR_TOKEN_EXPIRED') {
+                    localStorage.removeItem('tssc_google_auth');
+                    listArea.innerHTML = '<div class="empty-text">登入憑證已過期，請重新點擊上方按鈕登入</div>';
+                    setTimeout(() => location.reload(), 1500);
+                    return;
+                }
+
+                if (data.code === 'ERR_BLOCKED') {
+                    listArea.innerHTML = '<div class="empty-text" style="color: #ef4444;">存取遭到拒絕：您的裝置或 IP 已被系統封鎖，請聯繫管理員</div>';
+                    return;
+                }
+
                 if (data.success && data.feedbacks && data.feedbacks.length > 0) {
                     renderFeedbacks(data.feedbacks);
                 } else if (data.success) {
                     listArea.innerHTML = '<div class="empty-text">目前尚無您使用此信箱提交的意見記錄。</div>';
                 } else {
-                    listArea.innerHTML = `<div class="empty-text" style="color: #ef4444;">載入失敗：${data.error || '診斷驗證未通過'}</div>`;
+                    listArea.innerHTML = `<div class="empty-text" style="color: #ef4444;">載入失敗：${data.error || '驗證未通過'}</div>`;
                 }
             } catch (err) {
                 listArea.innerHTML = '<div class="empty-text" style="color: #ef4444;">連線失敗，請確認網路連線或稍後再試。</div>';
