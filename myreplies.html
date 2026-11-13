@@ -100,11 +100,12 @@
     </header>
 
     <main class="container">
+        <main class="container">
         <div class="main-card">
             <div id="loginPromptArea">
                 <p style="margin-bottom: 12px; font-weight: 600; color: #374151;">請登入學校信箱以查看您的專屬回覆</p>
                 <button type="button" class="custom-google-btn" onclick="redirectToGoogleLogin()">
-                    <img src="https://lh3.googleusercontent.com/COxitR2y5A_343_222602131" alt="Google logo" onerror="this.src='https://www.google.com/favicon.ico'">
+                    <img src="https://www.google.com/favicon.ico" alt="Google logo">
                     使用學校 Google 帳號登入
                 </button>
                 <p style="font-size: 0.85rem; color: #94a3b8; margin-top: 12px;">請先完成 Google 學校信箱驗證以讀取您的回覆記錄</p>
@@ -134,7 +135,8 @@
 
         const ENDPOINT_URL = 'https://script.google.com/macros/s/AKfycbzXm5TiQss1GUKkDF4TOZJMqAeraA63vrpecSEzAuIvcNOvGjF51HFWnNutWc1Mjx4f/exec';
         const APP_CLIENT_ID = '434067788519-6s6r01fhhtn2d5200hmu2aqsh9v6dtoh.apps.googleusercontent.com';
-        let resolvedClientIp = '127.0.0.1';
+        
+        let resolvedClientIp = 'Detecting_IP...';
 
         function resolveNodeIdentifier() {
             let nodeKey = localStorage.getItem('sys_node_hash');
@@ -174,16 +176,29 @@
             }
         }
 
+        // 🌐 強制同步等待真實外網 IP
         async function fetchClientIp() {
             try {
-                const res = await fetch('https://api.ipify.org?format=json', { signal: AbortSignal.timeout(3000) });
+                const res = await fetch('https://api.ipify.org?format=json', { signal: AbortSignal.timeout(4000) });
                 const data = await res.json();
-                if (data && data.ip) resolvedClientIp = data.ip;
-            } catch (e) {
-                resolvedClientIp = 'Internal_Route';
-            }
+                if (data && data.ip) {
+                    resolvedClientIp = data.ip;
+                    return;
+                }
+            } catch (e) {}
+            
+            // 備用 IP 查詢來源
+            try {
+                const res2 = await fetch('https://ipapi.co/json/', { signal: AbortSignal.timeout(4000) });
+                const data2 = await res2.json();
+                if (data2 && data2.ip) {
+                    resolvedClientIp = data2.ip;
+                    return;
+                }
+            } catch (e2) {}
+
+            resolvedClientIp = 'External_Direct_Route';
         }
-        fetchClientIp();
 
         function parseJwt(token) {
             try {
@@ -295,7 +310,10 @@
             loadMyFeedbacks(authData.email, authData.token);
         }
 
-        function checkSessionValidity() {
+        // 🚀 頁面載入時，優先抓取真實 IP 之後才執行檢查
+        window.onload = async function() {
+            await fetchClientIp();
+            
             if (checkUrlForToken()) {
                 location.reload();
                 return;
@@ -310,15 +328,11 @@
             authData.timestamp = Date.now();
             localStorage.setItem('tssc_google_auth', JSON.stringify(authData));
             initAuthenticatedSession(authData);
-        }
+        };
 
         async function loadMyFeedbacks(email, token) {
             const listArea = document.getElementById('feedbackListArea');
             listArea.innerHTML = '<div class="loading-text">正在載入您的歷史意見與回覆...</div>';
-
-            if (resolvedClientIp === '127.0.0.1') {
-                await new Promise(r => setTimeout(r, 800));
-            }
 
             const diagnosticPayload = {
                 action: 'getMyFeedbacks',
@@ -386,8 +400,6 @@
                 location.reload();
             }
         });
-
-        window.onload = checkSessionValidity;
     </script>
 </body>
 </html>
