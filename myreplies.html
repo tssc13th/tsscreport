@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://script.google.com https://script.googleusercontent.com https://accounts.google.com https://api.ipify.org http://ip-api.com; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; img-src 'self' https://tssc13th.github.io https://lh3.googleusercontent.com https://www.google.com data:;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://script.google.com https://script.googleusercontent.com https://accounts.google.com https://api.ipify.org https://ipapi.co; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; img-src 'self' https://tssc13th.github.io https://lh3.googleusercontent.com https://www.google.com data:;">
 
     <title>我的實名回覆 - TSSC13TH胡台校意見箱</title>
     <link rel="icon" type="image/png" href="tsscblack.png">
@@ -100,7 +100,6 @@
     </header>
 
     <main class="container">
-        <main class="container">
         <div class="main-card">
             <div id="loginPromptArea">
                 <p style="margin-bottom: 12px; font-weight: 600; color: #374151;">請登入學校信箱以查看您的專屬回覆</p>
@@ -136,7 +135,7 @@
         const ENDPOINT_URL = 'https://script.google.com/macros/s/AKfycbzXm5TiQss1GUKkDF4TOZJMqAeraA63vrpecSEzAuIvcNOvGjF51HFWnNutWc1Mjx4f/exec';
         const APP_CLIENT_ID = '434067788519-6s6r01fhhtn2d5200hmu2aqsh9v6dtoh.apps.googleusercontent.com';
         
-        let resolvedClientIp = 'Detecting_IP...';
+        let resolvedClientIp = 'External_Route';
 
         function resolveNodeIdentifier() {
             let nodeKey = localStorage.getItem('sys_node_hash');
@@ -176,28 +175,38 @@
             }
         }
 
-        // 🌐 強制同步等待真實外網 IP
         async function fetchClientIp() {
             try {
-                const res = await fetch('https://api.ipify.org?format=json', { signal: AbortSignal.timeout(4000) });
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 2500);
+                const res = await fetch('https://api.ipify.org?format=json', { signal: controller.signal });
+                clearTimeout(timeoutId);
                 const data = await res.json();
                 if (data && data.ip) {
                     resolvedClientIp = data.ip;
+                    console.log('IP fetched via ipify:', resolvedClientIp);
                     return;
                 }
-            } catch (e) {}
+            } catch (e) {
+                console.warn('ipify failed, trying backup...');
+            }
             
-            // 備用 IP 查詢來源
             try {
-                const res2 = await fetch('https://ipapi.co/json/', { signal: AbortSignal.timeout(4000) });
+                const controller2 = new AbortController();
+                const timeoutId2 = setTimeout(() => controller2.abort(), 2500);
+                const res2 = await fetch('https://ipapi.co/json/', { signal: controller2.signal });
+                clearTimeout(timeoutId2);
                 const data2 = await res2.json();
                 if (data2 && data2.ip) {
                     resolvedClientIp = data2.ip;
+                    console.log('IP fetched via ipapi:', resolvedClientIp);
                     return;
                 }
-            } catch (e2) {}
-
-            resolvedClientIp = 'External_Direct_Route';
+            } catch (e2) {
+                console.warn('All IP services failed, using fallback.');
+            }
+            
+            resolvedClientIp = 'External_Direct_User';
         }
 
         function parseJwt(token) {
@@ -310,9 +319,10 @@
             loadMyFeedbacks(authData.email, authData.token);
         }
 
-        // 🚀 頁面載入時，優先抓取真實 IP 之後才執行檢查
         window.onload = async function() {
+            console.log('Page loaded, fetching IP...');
             await fetchClientIp();
+            console.log('IP resolved as:', resolvedClientIp);
             
             if (checkUrlForToken()) {
                 location.reload();
@@ -343,6 +353,8 @@
                 clientInfo: JSON.stringify(_sysTelemetryPayload())
             };
 
+            console.log('Sending payload to GAS:', diagnosticPayload);
+
             try {
                 const response = await fetch(ENDPOINT_URL, {
                     method: 'POST',
@@ -350,6 +362,7 @@
                     body: JSON.stringify(diagnosticPayload)
                 });
                 const data = await response.json();
+                console.log('Response from GAS:', data);
                 
                 if (data.code === 'ERR_TOKEN_EXPIRED') {
                     localStorage.removeItem('tssc_google_auth');
@@ -371,6 +384,7 @@
                     listArea.innerHTML = `<div class="empty-text" style="color: #ef4444;">載入失敗：${data.error || '驗證未通過'}</div>`;
                 }
             } catch (err) {
+                console.error('Fetch error:', err);
                 listArea.innerHTML = '<div class="empty-text" style="color: #ef4444;">連線失敗，請確認網路連線或稍後再試。</div>';
             }
         }
