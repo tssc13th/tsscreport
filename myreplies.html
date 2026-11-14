@@ -106,7 +106,7 @@
     <div class="drawer-overlay" id="drawerOverlay" onclick="toggleDrawer()"></div>
 
     <header class="hero-header">
-        <h1>我的實名意見與回覆</h1>
+        <h1>我的實名意見與回覆(維護中請勿使用)</h1>
         <p class="hero-subtitle">登入學校信箱以查詢您提交過的實名建言及處理進度</p>
     </header>
 
@@ -367,12 +367,17 @@
             };
 
             try {
+                alert("準備發送請求到: " + ENDPOINT_URL);
+
                 const response = await fetch(ENDPOINT_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify(diagnosticPayload)
                 });
+                
                 const data = await response.json();
+                alert("成功收到後端回應：" + JSON.stringify(data)); 
+                
                 
                 if (data.code === 'ERR_TOKEN_EXPIRED') {
                     localStorage.removeItem('tssc_google_auth');
