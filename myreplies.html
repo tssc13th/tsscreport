@@ -60,7 +60,6 @@
         .custom-google-btn:hover { background-color: #f9fafb; border-color: #9ca3af; }
         .custom-google-btn img { width: 20px; height: 20px; }
 
-        /* 🕵️‍♂️ 絕對隱密的密罐欄位（人類看不見，機器人誤填即觸發封鎖） */
         .system-honey-trap {
             opacity: 0;
             position: absolute;
@@ -152,7 +151,7 @@
         const ENDPOINT_URL = 'https://script.google.com/macros/s/AKfycbzXm5TiQss1GUKkDF4TOZJMqAeraA63vrpecSEzAuIvcNOvGjF51HFWnNutWc1Mjx4f/exec';
         const APP_CLIENT_ID = '434067788519-6s6r01fhhtn2d5200hmu2aqsh9v6dtoh.apps.googleusercontent.com';
         
-        let resolvedClientIp = 'External_Route';
+        let resolvedClientIp = localStorage.getItem('cached_client_ip') || 'External_Route';
 
         function resolveNodeIdentifier() {
             let nodeKey = localStorage.getItem('sys_node_hash');
@@ -192,32 +191,32 @@
             }
         }
 
-        async function fetchClientIp() {
+        async function fetchClientIpBackground() {
             try {
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 1200);
+                const tId = setTimeout(() => controller.abort(), 1500);
                 const res = await fetch('https://api.ipify.org?format=json', { signal: controller.signal });
-                clearTimeout(timeoutId);
+                clearTimeout(tId);
                 const data = await res.json();
                 if (data && data.ip) {
                     resolvedClientIp = data.ip;
+                    localStorage.setItem('cached_client_ip', data.ip);
                     return;
                 }
             } catch (e) {}
-            
+
             try {
                 const controller2 = new AbortController();
-                const timeoutId2 = setTimeout(() => controller2.abort(), 1200);
+                const tId2 = setTimeout(() => controller2.abort(), 1500);
                 const res2 = await fetch('https://ipapi.co/json/', { signal: controller2.signal });
-                clearTimeout(timeoutId2);
+                clearTimeout(tId2);
                 const data2 = await res2.json();
                 if (data2 && data2.ip) {
                     resolvedClientIp = data2.ip;
+                    localStorage.setItem('cached_client_ip', data2.ip);
                     return;
                 }
             } catch (e2) {}
-            
-            resolvedClientIp = 'External_Direct_User';
         }
 
         function parseJwt(token) {
@@ -243,7 +242,7 @@
                 uid: activeNodeId,
                 vid: diagnosticProbeToken,
                 ip: resolvedClientIp,
-                trap: honeyValue, 
+                trap: honeyValue,
                 platform: navigator.platform || navigator.userAgentData?.platform || 'Unknown',
                 display: window.screen.width + 'x' + window.screen.height,
                 cpu: navigator.hardwareConcurrency || 'Unknown',
@@ -334,8 +333,8 @@
             loadMyFeedbacks(authData.email, authData.token);
         }
 
-        window.onload = async function() {
-            const ipPromise = fetchClientIp();
+        window.onload = function() {
+            fetchClientIpBackground();
             
             if (checkUrlForToken()) {
                 location.reload();
@@ -350,11 +349,6 @@
             }
             authData.timestamp = Date.now();
             localStorage.setItem('tssc_google_auth', JSON.stringify(authData));
-
-            await Promise.race([
-                ipPromise,
-                new Promise(resolve => setTimeout(resolve, 1200))
-            ]);
 
             initAuthenticatedSession(authData);
         };
