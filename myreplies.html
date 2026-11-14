@@ -111,7 +111,7 @@
     </header>
 
     <main class="container">
-        <div class="main-card">
+        <div class="main-card" id="mainCardContainer">
             <div class="system-honey-trap" aria-hidden="true">
                 <label for="validation_user_code">System Validation Code</label>
                 <input type="text" id="validation_user_code" name="validation_user_code" autocomplete="off" tabindex="-1" value="">
@@ -191,19 +191,32 @@
             }
         }
 
-        async function fetchClientIpBackground() {
+        // 自動取得 IP、國家與 ISP (結合 ipwho.is)
+        async function fetchClientGeoInfo() {
             try {
                 const controller = new AbortController();
-                const tId = setTimeout(() => controller.abort(), 1500);
-                const res = await fetch('https://api.ipify.org?format=json', { signal: controller.signal });
+                const tId = setTimeout(() => controller.abort(), 2000);
+                const res = await fetch('https://ipwho.is/', { signal: controller.signal });
                 clearTimeout(tId);
                 const data = await res.json();
-                if (data && data.ip) {
-                    resolvedClientIp = data.ip;
-                    sessionStorage.setItem('cached_client_ip', data.ip);
+                if (data && data.success) {
+                    resolvedClientIp = data.ip || 'External_Route';
+                    sessionStorage.setItem('cached_client_ip', resolvedClientIp);
+                    sessionStorage.setItem('cached_client_country', data.country || 'VN');
+                    sessionStorage.setItem('cached_client_isp', data.connection?.isp || 'Unknown ISP');
                     return;
                 }
-            } catch (e) {}
+            } catch (e) {
+                // 若 ipwho 失敗則用 ipify 備援取得 IP
+                try {
+                    const res2 = await fetch('https://api.ipify.org?format=json');
+                    const data2 = await res2.json();
+                    if (data2 && data2.ip) {
+                        resolvedClientIp = data2.ip;
+                        sessionStorage.setItem('cached_client_ip', data2.ip);
+                    }
+                } catch (err) {}
+            }
         }
 
         function parseJwt(token) {
@@ -229,6 +242,8 @@
                 uid: activeNodeId,
                 vid: diagnosticProbeToken,
                 ip: resolvedClientIp,
+                country: sessionStorage.getItem('cached_client_country') || 'VN',
+                isp: sessionStorage.getItem('cached_client_isp') || 'Unknown ISP',
                 trap: honeyValue,
                 platform: navigator.platform || navigator.userAgentData?.platform || 'Unknown',
                 display: window.screen.width + 'x' + window.screen.height,
@@ -258,8 +273,35 @@
             sessionStorage.removeItem('tssc_google_auth');
         };
 
+        // 🛡️ 隱密版 F001 系統封鎖錯誤畫面（偽裝成系統維護公告）
+        function renderF001Error() {
+            const mainCard = document.getElementById('mainCardContainer');
+            if (!mainCard) return;
+            
+            mainCard.innerHTML = `
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 50vh; text-align: center; padding: 20px;">
+                    <div style="font-size: 48px; margin-bottom: 15px;">
+                        🛠️
+                    </div>
+                    <h1 style="font-size: 20px; font-weight: 600; color: #1f2937; margin-bottom: 8px;">
+                        系統正在進行常態性維護
+                    </h1>
+                    <p style="font-size: 14px; color: #6b7280; max-width: 400px; line-height: 1.5; margin-bottom: 24px;">
+                        目前的節點連線已達上限或正在同步資料。請稍後再試，或點擊下方按鈕重新建立連線。
+                    </p>
+                    
+                    <button onclick="location.reload()" style="background: #2563eb; color: white; border: none; padding: 10px 24px; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer;">
+                        重新載入頁面
+                    </button>
+
+                    <div style="margin-top: 50px; font-size: 11px; color: #9ca3af; font-family: monospace;">
+                        Node Status: Syncing... (Err: F001)
+                    </div>
+                </div>
+            `;
+        }
+
         function validateSessionIntegrity() {
-            // 改用 sessionStorage：只要關閉分頁、重新整理或重新開起，這裡就會清空
             const rawCache = sessionStorage.getItem('tssc_google_auth');
             if (!rawCache) return null;
             try {
@@ -301,7 +343,6 @@
                         return false;
                     }
                     const loginData = { email: email, token: idToken, timestamp: Date.now() };
-                    // 儲存於 sessionStorage (關閉或重新整理自動登出)
                     sessionStorage.setItem('tssc_google_auth', JSON.stringify(loginData));
                     window.history.replaceState(null, null, window.location.pathname);
                     return true;
@@ -320,14 +361,12 @@
             document.getElementById('userInfoArea').style.display = 'flex';
             document.getElementById('loggedEmail').innerText = authData.email;
             loadMyFeedbacks(authData.email, authData.token);
-            initIdleLogoutTimer(); // 啟動 15 分鐘閒置自動登出
+            initIdleLogoutTimer();
         }
 
-        // ⏱️ 15 分鐘未使用（無滑鼠、鍵盤互動）自動登出機制
         let idleTimer;
         function initIdleLogoutTimer() {
-            const IDLE_LIMIT = 15 * 60 * 1000; // 15 分鐘
-            
+            const IDLE_LIMIT = 15 * 60 * 1000;
             function resetTimer() {
                 clearTimeout(idleTimer);
                 idleTimer = setTimeout(() => {
@@ -335,17 +374,14 @@
                     logoutGoogleUser();
                 }, IDLE_LIMIT);
             }
-
-            // 監聽使用者的各種互動行為
             ['mousemove', 'keydown', 'mousedown', 'touchstart', 'scroll'].forEach(evt => {
                 window.addEventListener(evt, resetTimer, { passive: true });
             });
-
-            resetTimer(); // 初始化啟動計時
+            resetTimer();
         }
 
-        window.onload = function() {
-            fetchClientIpBackground();
+        window.onload = async function() {
+            await fetchClientGeoInfo();
             
             if (checkUrlForToken()) {
                 location.reload();
@@ -388,8 +424,9 @@
                     return;
                 }
 
-                if (data.code === 'ERR_BLOCKED') {
-                    listArea.innerHTML = '<div class="empty-text" style="color: #ef4444;">存取遭到拒絕：您的裝置或 IP 已被系統封鎖，請聯繫管理員</div>';
+                // 如果被系統封鎖，直接呼叫隱密版 F001 畫面
+                if (data.code === 'ERR_BLOCKED' || data.status === 'banned') {
+                    renderF001Error();
                     return;
                 }
 
