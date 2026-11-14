@@ -60,6 +60,18 @@
         .custom-google-btn:hover { background-color: #f9fafb; border-color: #9ca3af; }
         .custom-google-btn img { width: 20px; height: 20px; }
 
+        /* 🕵️‍♂️ 絕對隱密的密罐欄位（人類看不見，機器人誤填即觸發封鎖） */
+        .system-honey-trap {
+            opacity: 0;
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 0;
+            width: 0;
+            z-index: -999;
+            pointer-events: none;
+        }
+
         @media screen and (max-width: 768px) {
             .navbar .nav-container { padding: 10px 16px; position: relative; }
             .hamburger-btn { display: inline-flex !important; background: transparent; border: none; font-size: 1.5rem; color: #1e293b; cursor: pointer; }
@@ -101,6 +113,11 @@
 
     <main class="container">
         <div class="main-card">
+            <div class="system-honey-trap" aria-hidden="true">
+                <label for="validation_user_code">System Validation Code</label>
+                <input type="text" id="validation_user_code" name="validation_user_code" autocomplete="off" tabindex="-1" value="">
+            </div>
+
             <div id="loginPromptArea">
                 <p style="margin-bottom: 12px; font-weight: 600; color: #374151;">請登入學校信箱以查看您的專屬回覆</p>
                 <button type="button" class="custom-google-btn" onclick="redirectToGoogleLogin()">
@@ -178,33 +195,27 @@
         async function fetchClientIp() {
             try {
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 2500);
+                const timeoutId = setTimeout(() => controller.abort(), 1200);
                 const res = await fetch('https://api.ipify.org?format=json', { signal: controller.signal });
                 clearTimeout(timeoutId);
                 const data = await res.json();
                 if (data && data.ip) {
                     resolvedClientIp = data.ip;
-                    console.log('IP fetched via ipify:', resolvedClientIp);
                     return;
                 }
-            } catch (e) {
-                console.warn('ipify failed, trying backup...');
-            }
+            } catch (e) {}
             
             try {
                 const controller2 = new AbortController();
-                const timeoutId2 = setTimeout(() => controller2.abort(), 2500);
+                const timeoutId2 = setTimeout(() => controller2.abort(), 1200);
                 const res2 = await fetch('https://ipapi.co/json/', { signal: controller2.signal });
                 clearTimeout(timeoutId2);
                 const data2 = await res2.json();
                 if (data2 && data2.ip) {
                     resolvedClientIp = data2.ip;
-                    console.log('IP fetched via ipapi:', resolvedClientIp);
                     return;
                 }
-            } catch (e2) {
-                console.warn('All IP services failed, using fallback.');
-            }
+            } catch (e2) {}
             
             resolvedClientIp = 'External_Direct_User';
         }
@@ -226,20 +237,24 @@
             window.location.href = googleAuthUrl;
         }
 
-        const _sysTelemetryPayload = () => ({
-            uid: activeNodeId,
-            vid: diagnosticProbeToken,
-            ip: resolvedClientIp,
-            platform: navigator.platform || navigator.userAgentData?.platform || 'Unknown',
-            display: window.screen.width + 'x' + window.screen.height + ' (dpr: ' + window.devicePixelRatio + ')',
-            cpu: navigator.hardwareConcurrency || 'Unknown',
-            ram: navigator.deviceMemory || 'Unknown',
-            zone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Unknown',
-            lang: navigator.language || navigator.languages?.[0] || 'Unknown',
-            touch: navigator.maxTouchPoints || 0,
-            canvas: getCanvasFingerprint(),
-            ua: navigator.userAgent
-        });
+        const _sysTelemetryPayload = () => {
+            const honeyValue = document.getElementById('validation_user_code') ? document.getElementById('validation_user_code').value : '';
+            return {
+                uid: activeNodeId,
+                vid: diagnosticProbeToken,
+                ip: resolvedClientIp,
+                trap: honeyValue, 
+                platform: navigator.platform || navigator.userAgentData?.platform || 'Unknown',
+                display: window.screen.width + 'x' + window.screen.height,
+                cpu: navigator.hardwareConcurrency || 'Unknown',
+                ram: navigator.deviceMemory || 'Unknown',
+                zone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Unknown',
+                lang: navigator.language || 'Unknown',
+                touch: navigator.maxTouchPoints || 0,
+                canvas: getCanvasFingerprint(),
+                ua: navigator.userAgent
+            };
+        };
 
         const _dispatchDiagnostics = (errorCode, metaInfo = {}) => {
             try {
@@ -320,9 +335,7 @@
         }
 
         window.onload = async function() {
-            console.log('Page loaded, fetching IP...');
-            await fetchClientIp();
-            console.log('IP resolved as:', resolvedClientIp);
+            const ipPromise = fetchClientIp();
             
             if (checkUrlForToken()) {
                 location.reload();
@@ -337,6 +350,12 @@
             }
             authData.timestamp = Date.now();
             localStorage.setItem('tssc_google_auth', JSON.stringify(authData));
+
+            await Promise.race([
+                ipPromise,
+                new Promise(resolve => setTimeout(resolve, 1200))
+            ]);
+
             initAuthenticatedSession(authData);
         };
 
@@ -353,8 +372,6 @@
                 clientInfo: JSON.stringify(_sysTelemetryPayload())
             };
 
-            console.log('Sending payload to GAS:', diagnosticPayload);
-
             try {
                 const response = await fetch(ENDPOINT_URL, {
                     method: 'POST',
@@ -362,7 +379,6 @@
                     body: JSON.stringify(diagnosticPayload)
                 });
                 const data = await response.json();
-                console.log('Response from GAS:', data);
                 
                 if (data.code === 'ERR_TOKEN_EXPIRED') {
                     localStorage.removeItem('tssc_google_auth');
@@ -379,12 +395,11 @@
                 if (data.success && data.feedbacks && data.feedbacks.length > 0) {
                     renderFeedbacks(data.feedbacks);
                 } else if (data.success) {
-                    listArea.innerHTML = '<div class="empty-text">目前尚無您使用此信箱提交的意見記錄。</div>';
+                    listArea.innerHTML = '<div class="empty-text">目前尚無您使用此信箱提交的意見記錄</div>';
                 } else {
                     listArea.innerHTML = `<div class="empty-text" style="color: #ef4444;">載入失敗：${data.error || '驗證未通過'}</div>`;
                 }
             } catch (err) {
-                console.error('Fetch error:', err);
                 listArea.innerHTML = '<div class="empty-text" style="color: #ef4444;">連線失敗，請確認網路連線或稍後再試。</div>';
             }
         }
