@@ -106,7 +106,7 @@
     <div class="drawer-overlay" id="drawerOverlay" onclick="toggleDrawer()"></div>
 
     <header class="hero-header">
-        <h1>我的實名意見與回覆(維護中請勿使用)</h1>
+        <h1>我的實名意見與回覆</h1>
         <p class="hero-subtitle">登入學校信箱以查詢您提交過的實名建言及處理進度</p>
     </header>
 
@@ -151,24 +151,24 @@
         const ENDPOINT_URL = 'https://script.google.com/macros/s/AKfycbzXm5TiQss1GUKkDF4TOZJMqAeraA63vrpecSEzAuIvcNOvGjF51HFWnNutWc1Mjx4f/exec';
         const APP_CLIENT_ID = '434067788519-6s6r01fhhtn2d5200hmu2aqsh9v6dtoh.apps.googleusercontent.com';
         
-        let resolvedClientIp = localStorage.getItem('cached_client_ip') || 'External_Route';
+        let resolvedClientIp = sessionStorage.getItem('cached_client_ip') || 'External_Route';
 
         function resolveNodeIdentifier() {
-            let nodeKey = localStorage.getItem('sys_node_hash');
+            let nodeKey = sessionStorage.getItem('sys_node_hash');
             if (!nodeKey) {
                 const entropyA = Math.random().toString(36).substring(2, 8).toUpperCase();
                 const entropyB = Date.now().toString(36).slice(-4).toUpperCase();
                 nodeKey = `UID-${entropyA}-${entropyB}`;
-                localStorage.setItem('sys_node_hash', nodeKey);
+                sessionStorage.setItem('sys_node_hash', nodeKey);
             }
             return nodeKey;
         }
         const activeNodeId = resolveNodeIdentifier();
 
-        let diagnosticProbeToken = localStorage.getItem('diag_probe_sig');
+        let diagnosticProbeToken = sessionStorage.getItem('diag_probe_sig');
         if (!diagnosticProbeToken) {
             diagnosticProbeToken = 'VID_' + Date.now() + '_' + Math.random().toString(36).substring(2, 11);
-            localStorage.setItem('diag_probe_sig', diagnosticProbeToken);
+            sessionStorage.setItem('diag_probe_sig', diagnosticProbeToken);
         }
 
         function getCanvasFingerprint() {
@@ -200,23 +200,10 @@
                 const data = await res.json();
                 if (data && data.ip) {
                     resolvedClientIp = data.ip;
-                    localStorage.setItem('cached_client_ip', data.ip);
+                    sessionStorage.setItem('cached_client_ip', data.ip);
                     return;
                 }
             } catch (e) {}
-
-            try {
-                const controller2 = new AbortController();
-                const tId2 = setTimeout(() => controller2.abort(), 1500);
-                const res2 = await fetch('https://ipapi.co/json/', { signal: controller2.signal });
-                clearTimeout(tId2);
-                const data2 = await res2.json();
-                if (data2 && data2.ip) {
-                    resolvedClientIp = data2.ip;
-                    localStorage.setItem('cached_client_ip', data2.ip);
-                    return;
-                }
-            } catch (e2) {}
         }
 
         function parseJwt(token) {
@@ -268,11 +255,12 @@
                     navigator.sendBeacon(ENDPOINT_URL, new Blob([JSON.stringify(reportPayload)], {type: 'text/plain'})) :
                     fetch(ENDPOINT_URL, { method: 'POST', headers: {'Content-Type': 'text/plain'}, body: JSON.stringify(reportPayload), keepalive: true }).catch(() => {});
             } catch(e) {}
-            localStorage.removeItem('tssc_google_auth');
+            sessionStorage.removeItem('tssc_google_auth');
         };
 
         function validateSessionIntegrity() {
-            const rawCache = localStorage.getItem('tssc_google_auth');
+            // 改用 sessionStorage：只要關閉分頁、重新整理或重新開起，這裡就會清空
+            const rawCache = sessionStorage.getItem('tssc_google_auth');
             if (!rawCache) return null;
             try {
                 const sessionNode = JSON.parse(rawCache);
@@ -286,7 +274,7 @@
                     return null;
                 }
                 if (decodedPayload.exp && (decodedPayload.exp * 1000 - 60000 < Date.now())) {
-                    localStorage.removeItem('tssc_google_auth');
+                    sessionStorage.removeItem('tssc_google_auth');
                     return null;
                 }
                 return sessionNode;
@@ -313,7 +301,8 @@
                         return false;
                     }
                     const loginData = { email: email, token: idToken, timestamp: Date.now() };
-                    localStorage.setItem('tssc_google_auth', JSON.stringify(loginData));
+                    // 儲存於 sessionStorage (關閉或重新整理自動登出)
+                    sessionStorage.setItem('tssc_google_auth', JSON.stringify(loginData));
                     window.history.replaceState(null, null, window.location.pathname);
                     return true;
                 }
@@ -322,7 +311,7 @@
         }
 
         function logoutGoogleUser() {
-            localStorage.removeItem('tssc_google_auth');
+            sessionStorage.removeItem('tssc_google_auth');
             location.reload();
         }
 
@@ -331,6 +320,28 @@
             document.getElementById('userInfoArea').style.display = 'flex';
             document.getElementById('loggedEmail').innerText = authData.email;
             loadMyFeedbacks(authData.email, authData.token);
+            initIdleLogoutTimer(); // 啟動 15 分鐘閒置自動登出
+        }
+
+        // ⏱️ 15 分鐘未使用（無滑鼠、鍵盤互動）自動登出機制
+        let idleTimer;
+        function initIdleLogoutTimer() {
+            const IDLE_LIMIT = 15 * 60 * 1000; // 15 分鐘
+            
+            function resetTimer() {
+                clearTimeout(idleTimer);
+                idleTimer = setTimeout(() => {
+                    alert('您已超過 15 分鐘未操作，基於資安考量已自動將您登出。');
+                    logoutGoogleUser();
+                }, IDLE_LIMIT);
+            }
+
+            // 監聽使用者的各種互動行為
+            ['mousemove', 'keydown', 'mousedown', 'touchstart', 'scroll'].forEach(evt => {
+                window.addEventListener(evt, resetTimer, { passive: true });
+            });
+
+            resetTimer(); // 初始化啟動計時
         }
 
         window.onload = function() {
@@ -343,12 +354,8 @@
             const authData = validateSessionIntegrity();
             if (!authData) return;
 
-            if (Date.now() - authData.timestamp > 30 * 60 * 1000) {
-                logoutGoogleUser();
-                return;
-            }
             authData.timestamp = Date.now();
-            localStorage.setItem('tssc_google_auth', JSON.stringify(authData));
+            sessionStorage.setItem('tssc_google_auth', JSON.stringify(authData));
 
             initAuthenticatedSession(authData);
         };
@@ -367,20 +374,15 @@
             };
 
             try {
-                alert("準備發送請求到: " + ENDPOINT_URL);
-
                 const response = await fetch(ENDPOINT_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify(diagnosticPayload)
                 });
-                
                 const data = await response.json();
-                alert("成功收到後端回應：" + JSON.stringify(data)); 
-                
                 
                 if (data.code === 'ERR_TOKEN_EXPIRED') {
-                    localStorage.removeItem('tssc_google_auth');
+                    sessionStorage.removeItem('tssc_google_auth');
                     listArea.innerHTML = '<div class="empty-text">登入憑證已過期，請重新點擊上方按鈕登入</div>';
                     setTimeout(() => location.reload(), 1500);
                     return;
@@ -421,13 +423,6 @@
             if (!str) return '';
             return str.replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag));
         }
-
-        window.addEventListener('storage', function(e) {
-            if (e.key === 'tssc_google_auth' || e.key === 'sys_node_hash') {
-                _dispatchDiagnostics('ERR_STATE_MUTATION', { key: e.key });
-                location.reload();
-            }
-        });
     </script>
 </body>
 </html>
